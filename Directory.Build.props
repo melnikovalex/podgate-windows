@@ -16,6 +16,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- English only: the satellite folders are 40 files of framework translations nobody sees. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
     <!-- Self-contained so another PC needs nothing installed. Flip this one property for a small
          build that requires the .NET Desktop Runtime instead. -->

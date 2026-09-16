@@ -11,7 +11,7 @@ PodGate keeps the AirPods **blocked at rest** by disabling their Bluetooth devic
 ## Install
 
 1. Pair your AirPods with Windows once, in **Settings > Bluetooth & devices**.
-2. Download `PodGate-Setup-<version>.exe` from [Releases](https://github.com/melnikovalex/podgate-windows/releases) and run it. It asks for administrator rights once.
+2. Download `PodGate-<version>.msi` from [Releases](https://github.com/melnikovalex/podgate-windows/releases) and run it. It asks for administrator rights once.
 3. The tray icon appears and setup opens: pick your AirPods, set and test your shortcuts, and try a connect. From then on the AirPods stay with your phone until you ask for them.
 
 Installing a newer version over an existing one keeps your settings. A downgrade is refused.
@@ -29,6 +29,17 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 - A small card at the bottom of the screen shows progress and disappears by itself. Its close button only hides it; the action continues.
 - **Shutdown and restart** release the AirPods automatically.
 - Tray icon: white = connected, purple = connected for music, grey = disconnected.
+
+## Battery and ear detection
+
+PodGate reads the battery from the AirPods' own Bluetooth broadcast, so it works even when they are connected to your phone instead of this PC:
+
+- **Tray menu:** `L 80% · R 75% · Case 60%`, one value when both pods agree, `Battery unknown` when nothing has been heard.
+- **Warnings** at 20% and again at 5%, switched off in the tray menu.
+- **Progress popup:** a battery glyph, grey above 20%, yellow at 20%, red at 5%. The percentages appear when the pointer is over the card.
+- **Ear detection:** taking a pod out pauses what is playing, putting it back within a minute starts it again, and only while the sound is going to the AirPods. Switched off in the tray menu.
+
+The broadcast carries no serial number, so PodGate reads the strongest pair in range: another pair of the same model very close by can be read instead of yours.
 
 ## Settings
 
@@ -58,11 +69,16 @@ The details that make it work reliably (and the Windows behaviours behind every 
 
 ## Build
 
-Requirements: Windows 10 2004 or later, .NET 10 SDK, Inno Setup 6 (`winget install JRSoftware.InnoSetup`).
+Requirements: Windows 10 2004 or later, the .NET 10 SDK, and WiX 5:
 
 ```powershell
+dotnet tool install --global wix --version 5.0.2
+wix extension add -g WixToolset.Util.wixext/5.0.2
+wix extension add -g WixToolset.UI.wixext/5.0.2
+
 dotnet build PodGate.slnx
-powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1   # -> artifacts\setup\PodGate-Setup-<version>.exe
+dotnet test tests\PodGate.Core.Tests\PodGate.Core.Tests.csproj
+powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1   # -> artifacts\setup\PodGate-<version>.msi
 ```
 
 `tests/PodGate.Hardware.SmokeTests` needs real, paired AirPods and is never run in CI. Before experimenting with Bluetooth state on your own machine, take a snapshot with `scripts\backup-bt.ps1`.

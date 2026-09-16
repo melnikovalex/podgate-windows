@@ -38,6 +38,13 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **Explorer holds a shortcut's hotkey for a while** after the `.lnk` is deleted, so a freshly freed combination can be briefly unavailable.
 - **Overlapping connect and release runs** can leave the AirPods connected in Hands-Free-only mode: one action at a time.
 
+## Battery over Bluetooth LE
+
+- **AirPods battery only exists in an advertisement.** Apple's "proximity pairing" broadcast (manufacturer `0x004C`, type `0x07`, 27 bytes) carries battery per pod and case as nibbles in ten-percent steps, plus charging and wear bits. Nothing else on Windows reports it while the AirPods are connected to a phone.
+- **Other Apple products send type `0x07` too.** Their bytes decode into believable nonsense; byte 4 is `0x20` on every pair that reports battery, which is what tells them apart (measured: a neighbouring device read as "AirPods, left 0 %").
+- **The advertising address rotates** every few minutes and carries nothing that ties it to a paired device, so a pair can only be picked by model and signal strength. Passive scanning is enough; no pairing and no elevation are involved.
+- **The wear bits are the least certain part** of the layout: a pair that never reports them simply never triggers ear detection.
+
 ## Antivirus
 
 - Heuristics react to scripts that write `RunOnce` values and relaunch themselves, to runtime compilation (`Add-Type`), `-ExecutionPolicy Bypass`, and to unsigned installers running executables from `%TEMP%` (Inno Setup's uninstaller copies itself there). Compiled binaries remove most of these triggers; code signing is the real fix.

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PodGate installer (MSI). Build with build.ps1, which passes the version from VERSION.
+
+  What it owns: files in Program Files\PodGate, the PodGate service, the HKLM Run value, a Start menu
+  shortcut and the Installed-apps entry. Uninstall gives the AirPods back to stock Windows *before*
+  removing anything, so a machine without PodGate behaves exactly as it did before.
+
+  MSI rather than a self-extracting setup.exe: Windows Installer runs it, so nothing unknown executes
+  from the temp folder, services and rollback are part of the format, and IT can deploy it.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <?define InnoKey = "Software\Microsoft\Windows\CurrentVersion\Uninstall\{F7DFF609-FE5D-4ACA-8572-AFCA5264B197}_is1" ?>
+
+  <Package Name="PodGate" Manufacturer="PodGate" Version="$(Version)" Scope="perMachine" Compressed="yes"
+           UpgradeCode="9E0C5F8A-4C8B-4E0B-9F2E-9E1E2B3C4D50">
+
+    <SummaryInformation Description="PodGate: connect your AirPods when you ask, not when Windows feels like it" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Same UpgradeCode, higher version: Windows replaces the old one and keeps the settings. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of PodGate is already installed." />
+
+    <Launch Condition="Installed OR (VersionNT64 &gt;= 603)"
+            Message="PodGate needs 64-bit Windows 10 or later." />
+    <!-- The 0.6 and earlier installers were a different format; two of them would fight over the device. -->
+    <Property Id="OLDPODGATE">
+      <RegistrySearch Id="InnoSetupEntry" Root="HKLM" Key="$(InnoKey)" Name="DisplayVersion" Type="raw" Bitness="always64" />
+    </Property>
+    <Launch Condition="Installed OR NOT OLDPODGATE"
+            Message="An older PodGate is still installed. Remove it first in Settings &gt; Apps &gt; Installed apps, then run this again." />
+
+    <!-- The tray app holds its own files open; close it before replacing them. -->
+    <util:CloseApplication Id="CloseTrayApp" Target="PodGate.exe" CloseMessage="yes" TerminateProcess="1"
+                           RebootPrompt="no" />
+
+    <Icon Id="PodGateIcon" SourceFile="$(PublishDir)\PodGate.exe" />
+    <Property Id="ARPPRODUCTICON" Value="PodGateIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/melnikovalex/podgate-windows" />
+    <WixVariable Id="WixUILicenseRtf" Value="setup\license.rtf" />
+    <ui:WixUI Id="WixUI_Minimal" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PodGate" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="MachineDataFolder" Name="PodGate" />
+    </StandardDirectory>
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserDataFolder" Name="PodGate" />
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="PodGate" AllowAbsent="no">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="PublishedFiles" />
+      <ComponentGroupRef Id="Registration" />
+    </Feature>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <!-- Everything else the publish step produced comes from Files.wxs, which build.ps1 generates:
+           the service binary needs a component of its own, and harvesting cannot leave one file out. -->
+
+      <Component Id="AppExe" Bitness="always64">
+        <File Id="PodGateExe" Source="$(PublishDir)\PodGate.exe" KeyPath="yes" />
+      </Component>
+
+      <Component Id="ServiceExe" Bitness="always64">
+        <File Id="PodGateServiceExe" Source="$(PublishDir)\PodGate.Service.exe" KeyPath="yes" />
+        <ServiceInstall Id="PodGateService" Name="PodGate" DisplayName="PodGate" Type="ownProcess"
+                        Start="auto" ErrorControl="normal" Account="LocalSystem" Vital="yes"
+                        Description="Keeps AirPods from connecting to this PC until you ask for them.">
+          <util:ServiceConfig FirstFailureActionType="restart" SecondFailureActionType="restart"
+                              ThirdFailureActionType="restart" RestartServiceDelayInSeconds="5" />
+        </ServiceInstall>
+        <ServiceControl Id="PodGateServiceControl" Name="PodGate" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="Registration">
+      <Component Id="AutostartValue" Directory="INSTALLFOLDER" Bitness="always64">
+        <!-- The "autostart" switch lets a user who turned "Start PodGate with Windows" off keep it off,
+             without an administrator having to touch this machine-wide value. -->
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="PodGate"
+                       Type="string" Value="&quot;[INSTALLFOLDER]PodGate.exe&quot; --autostart" KeyPath="yes" />
+      </Component>
+
+      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="7B4A2D15-3E64-4F2A-9E3C-0A5D6B7C8E91">
+        <Shortcut Id="PodGateShortcut" Name="PodGate" Description="Connect your AirPods to this PC"
+                  Target="[INSTALLFOLDER]PodGate.exe" WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\PodGate" Name="shortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Configuration and logs are PodGate's own; an uninstall leaves nothing behind. -->
+      <Component Id="MachineData" Directory="MachineDataFolder" Guid="0D9D5A2C-52B6-4E9A-8E44-9B8C1D2E3F40">
+        <RemoveFile Id="RemoveMachineData" Name="*.*" On="uninstall" />
+        <RemoveFolder Id="RemoveMachineFolder" On="uninstall" />
+        <RegistryValue Root="HKLM" Key="Software\PodGate" Name="data" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+      <Component Id="UserData" Directory="UserDataFolder" Guid="5C1E8F70-9A2B-4C3D-8E5F-6A7B8C9D0E11">
+        <RemoveFile Id="RemoveUserData" Name="*.*" On="uninstall" />
+        <RemoveFolder Id="RemoveUserFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\PodGate" Name="data" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Hand the AirPods back before the files disappear: the service is already stopped at this point. -->
+    <CustomAction Id="RestoreStock" FileRef="PodGateServiceExe" ExeCommand="--restore-stock"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <!-- Start the tray app as the user who installed, not as the elevated installer. -->
+    <CustomAction Id="LaunchApp" FileRef="PodGateExe" ExeCommand="" Execute="immediate" Impersonate="yes"
+                  Return="asyncNoWait" />
+
+    <InstallExecuteSequence>
+      <Custom Action="RestoreStock" After="StopServices" Condition="REMOVE=&quot;ALL&quot;" />
+      <Custom Action="LaunchApp" After="InstallFinalize" Condition="NOT Installed AND NOT REMOVE" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

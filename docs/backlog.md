@@ -9,14 +9,12 @@ Setup (welcome, choose AirPods, permission, shortcuts with live tests, connect t
 - Default sound devices per state, chosen in settings: output (and microphone) for "connected", "connected for music", and "disconnected" (default: return to the previous device).
 - Pairing link on the "no AirPods" page opens Windows' add-device page; confirm it lands there on other machines.
 
-## 2. Battery and ear detection (0.7)
+## 2. Battery and ear detection - shipped in 0.7
 
-- Watch Apple's proximity-pairing BLE advertisement (manufacturer 0x004C, type 0x07) in the tray app: model, battery per pod and case (10% steps), charging, in-ear, lid open. The address rotates, so match by model and signal strength; a nearby pair of the same model can be mistaken for yours.
-- Parser with unit tests against recorded adverts (the first unit test project, runs in CI).
-- Tray menu, first row: `L 80% · R 75% · Case 60%`, one value when equal, `—` when unknown.
-- Low-battery notifications at 20% and at 5%, once per threshold per charge; on/off as a checked tray menu item stored per user (no elevation needed).
-- Progress card: battery glyph, grey above 20%, yellow at or below 20%, red at or below 5%, percentage on hover.
-- Ear detection: a pod taken out pauses media that is playing on the AirPods; back in within 60 s resumes only what PodGate paused. Off switch in the tray menu.
+Battery in the tray menu and on the progress card, warnings at 20% and 5%, ear detection, and the first unit tests (the advertisement parser). Still open:
+
+- Confirm the battery numbers against the phone (test T19) and the wear bits by taking a pod out (T20): both are inferred from an undocumented advertisement.
+- Show battery for the configured pair rather than the strongest one in range, if a reliable way to tell them apart turns up.
 
 ## 3. Other AirPods models and switching pairs (0.8)
 
