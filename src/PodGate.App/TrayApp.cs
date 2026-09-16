@@ -175,6 +175,7 @@ public sealed class TrayApp : IDisposable
         _setup.Closed += (_, _) =>
         {
             _setup = null;
+            _battery.Retarget();   // a different pair means a different model to listen for
             _lastState = "";
             RefreshState();
         };

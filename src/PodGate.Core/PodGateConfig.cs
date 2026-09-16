@@ -124,6 +124,18 @@ public sealed class PodGateConfig
             $"Cannot decide which device to manage. Paired: {known}. Set it in the configuration.");
     }
 
+    /// <summary>
+    /// The product id Windows recorded when the device was paired (0x2024 for AirPods Pro 2 USB-C). The
+    /// battery advertisement carries the same two bytes, which is how a neighbour's pair is told apart
+    /// from this one without any address to match on.
+    /// </summary>
+    public static int? ProductId(string address)
+    {
+        using RegistryKey? key = Registry.LocalMachine.OpenSubKey(
+            $@"SYSTEM\CurrentControlSet\Services\BTHPORT\Parameters\Devices\{address.ToLowerInvariant()}");
+        return key?.GetValue("PID") as int?;
+    }
+
     public static bool IsAppleDevice(string address)
     {
         using RegistryKey? key = Registry.LocalMachine.OpenSubKey(

@@ -127,6 +127,8 @@ if (action == "--ble-watch")
     string? secondsArg = args.SkipWhile(a => a != "--ble-watch").Skip(1).FirstOrDefault();
     if (secondsArg is not null && int.TryParse(secondsArg, out int parsed)) seconds = parsed;
 
+    int? expected = PodGateConfig.ProductId(PodGateConfig.ResolveAddress()) & 0xFF;
+    Console.WriteLine($"  the paired device's model byte is 0x{expected:X2}; other pairs are listed but ignored by the app");
     using var watcher = new PodGate.Core.Ble.PodWatcher(minimumRssi: -95, log: Console.WriteLine);
     watcher.Updated += status => Console.WriteLine(
         $"  {status.Seen:HH:mm:ss} rssi={status.Rssi,4} model=0x{status.Model:X2} {status.ModelName,-38} " +

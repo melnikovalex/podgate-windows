@@ -15,7 +15,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Not invariant: WPF needs real culture data. With InvariantGlobalization, any two-way binding that
+         converts a value throws "Cannot find non-neutral culture related to 'en-us'" the moment it runs,
+         which is what a click on a combo box does. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <!-- English only: the satellite folders are 40 files of framework translations nobody sees. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 

@@ -14,12 +14,15 @@ public sealed class PodWatcher : IDisposable
     private readonly BluetoothLEAdvertisementWatcher _watcher = new() { ScanningMode = BluetoothLEScanningMode.Passive };
     private readonly int _minimumRssi;
     private readonly Action<string>? _log;
+    private int? _model;
 
     private PodStatus? _best;
 
     /// <param name="minimumRssi">Ignore advertisements weaker than this, in dBm. -70 is roughly one room.</param>
-    public PodWatcher(int minimumRssi = -70, Action<string>? log = null)
+    /// <param name="model">Only read this model byte, which keeps a neighbour's different AirPods out.</param>
+    public PodWatcher(int minimumRssi = -70, Action<string>? log = null, int? model = null)
     {
+        _model = model;
         _minimumRssi = minimumRssi;
         _log = log;
         _watcher.Received += OnReceived;
@@ -32,6 +35,15 @@ public sealed class PodWatcher : IDisposable
     public event Action? Lost;
 
     public PodStatus? Current => _best;
+
+    /// <summary>The model to listen for; set again when the managed device changes.</summary>
+    public void Expect(int? model)
+    {
+        if (_model == model) return;
+        _model = model;
+        _best = null;
+        Lost?.Invoke();
+    }
 
     public void Start()
     {
@@ -78,6 +90,7 @@ public sealed class PodWatcher : IDisposable
 
             PodStatus? status = AppleAdvert.Parse(payload, args.RawSignalStrengthInDBm);
             if (status is null) continue;
+            if (_model is not null && status.Model != _model) continue;   // someone else's AirPods
 
             // Strongest wins, but a newer reading from the same pair always replaces the old one, and a
             // pair that has gone quiet for half a minute loses its claim to a closer one.

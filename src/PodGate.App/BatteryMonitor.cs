@@ -34,7 +34,7 @@ public sealed class BatteryMonitor : IDisposable
     {
         _listeningOnPods = listeningOnPods;
         _notify = notify;
-        _watcher = new PodWatcher(log: AppLog.Write);
+        _watcher = new PodWatcher(log: AppLog.Write, model: ExpectedModel());
         _watcher.Updated += OnUpdated;
         _watcher.Lost += () => Changed?.Invoke(null);
         _timer.Tick += (_, _) =>
@@ -48,6 +48,23 @@ public sealed class BatteryMonitor : IDisposable
     public event Action<PodStatus?>? Changed;
 
     public PodStatus? Current => _watcher.Current;
+
+    /// <summary>The managed pair's model byte, so only its advertisements are read.</summary>
+    private static int? ExpectedModel()
+    {
+        try
+        {
+            int? product = PodGateConfig.ProductId(PodGateConfig.ResolveAddress());
+            return product is null ? null : product & 0xFF;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Call after the managed device changes: the new pair has its own model.</summary>
+    public void Retarget() => _watcher.Expect(ExpectedModel());
 
     public void Start()
     {
