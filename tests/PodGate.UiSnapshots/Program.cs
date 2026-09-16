@@ -84,7 +84,7 @@ internal static class Program
         Save(change, output, "6-change-airpods");
         change.Close();
 
-        var settings = new SettingsWindow(hotkeys);
+        var settings = new SettingsWindow(hotkeys, () => "L 100% · R 90%");
         Show(settings);
         settings.ShowDeviceForSnapshot("AirPods Pro", "AA:BB:CC:DD:EE:01 · Disconnected");
         settings.Rows[0].ShowSample("works");

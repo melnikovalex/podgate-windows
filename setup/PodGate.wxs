@@ -22,7 +22,9 @@
     <MediaTemplate EmbedCab="yes" />
 
     <!-- Same UpgradeCode, higher version: Windows replaces the old one and keeps the settings. -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of PodGate is already installed." />
+    <!-- AllowSameVersionUpgrades keeps a rebuild of the same version from registering as a second product,
+         which is what happens by default and leaves several PodGate entries in Installed apps. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of PodGate is already installed." />
 
     <Launch Condition="Installed OR (VersionNT64 &gt;= 603)"
             Message="PodGate needs 64-bit Windows 10 or later." />

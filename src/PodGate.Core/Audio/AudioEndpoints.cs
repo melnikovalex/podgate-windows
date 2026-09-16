@@ -77,8 +77,11 @@ public static class AudioEndpoints
         return found;
     }
 
-    /// <summary>Every endpoint Windows currently has for a flow, newest state first: what the pickers list.</summary>
-    public static IReadOnlyList<AudioEndpoint> All(AudioFlow flow, bool activeOnly = true)
+    /// <summary>
+    /// Every endpoint Windows would show for a flow: the ones in use, plus devices that are simply not
+    /// plugged in right now, which are still worth choosing for later.
+    /// </summary>
+    public static IReadOnlyList<AudioEndpoint> All(AudioFlow flow, bool activeOnly = false)
     {
         var found = new List<AudioEndpoint>();
         using RegistryKey? flowKey = Registry.LocalMachine.OpenSubKey($@"{MMDevicesKey}\{flow}");
@@ -91,7 +94,7 @@ public static class AudioEndpoints
             if (endpointKey is null || properties is null) continue;
 
             EndpointState state = ReadState(endpointKey);
-            if (activeOnly && state != EndpointState.Active) continue;
+            if (activeOnly ? state != EndpointState.Active : state is not (EndpointState.Active or EndpointState.Unplugged)) continue;
 
             string instancePath = properties.GetValue(InstancePathValue) as string ?? string.Empty;
             found.Add(new AudioEndpoint

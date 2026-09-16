@@ -40,7 +40,7 @@
         <TextBlock x:Name="NotSet" Text="Not set" FontSize="13" Foreground="{StaticResource Label3}" VerticalAlignment="Center"
                    Visibility="Collapsed"/>
         <Border x:Name="EmptyCap" Style="{StaticResource KeycapPlaceholder}" Visibility="Collapsed">
-          <TextBlock x:Name="EmptyCapText" Text="Set shortcut" FontSize="12" Foreground="{StaticResource Label3}"
+          <TextBlock x:Name="EmptyCapText" Text="Set shortcut" FontSize="12" Foreground="{DynamicResource Label3}"
                      VerticalAlignment="Center"/>
         </Border>
         <Button x:Name="PencilButton" Style="{StaticResource LinkButton}" Margin="10,0,0,0" Visibility="Collapsed"

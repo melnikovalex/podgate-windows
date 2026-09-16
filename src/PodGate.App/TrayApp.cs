@@ -79,6 +79,7 @@ public sealed class TrayApp : IDisposable
             string text = BatteryMonitor.MenuText(status);
             if (text != _batteryItem.Text) AppLog.Write($"battery: {text} ({status?.ModelName ?? "no advertisement"})");
             _batteryItem.Text = text;
+            _settings?.Reload();
             _hud?.SetBattery(status?.Lowest, text);
         });
         _battery.Start();
@@ -193,7 +194,7 @@ public sealed class TrayApp : IDisposable
             _settings.Activate();
             return;
         }
-        _settings = new SettingsWindow(_hotkeys);
+        _settings = new SettingsWindow(_hotkeys, () => BatteryMonitor.MenuText(_battery.Current));
         _settings.ChooseOtherRequested += () => OpenSetup(changeDevice: true);
         _settings.SetupRequested += () => OpenSetup(changeDevice: false);
         _settings.LogRequested += () => Open(Paths.LogFile("app"));

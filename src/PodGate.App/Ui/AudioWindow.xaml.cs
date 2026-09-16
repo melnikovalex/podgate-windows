@@ -70,9 +70,13 @@ public partial class AudioWindow : DarkWindow
         if (_mode == Mode.Disconnect) items.Add(AudioTarget.Of(AudioTarget.Previous));
         else items.Add(AudioTarget.Of(AudioTarget.AirPods));
 
-        foreach (AudioEndpoint endpoint in AudioEndpoints.All(flow))
+        foreach (AudioEndpoint endpoint in AudioEndpoints.All(flow)
+                     .OrderBy(e => e.State == EndpointState.Active ? 0 : 1)
+                     .ThenBy(e => e.FriendlyName, StringComparer.CurrentCultureIgnoreCase))
         {
-            items.Add(AudioTarget.Of(endpoint.EndpointId, endpoint.FriendlyName ?? endpoint.EndpointId));
+            string name = endpoint.FriendlyName ?? endpoint.EndpointId;
+            if (endpoint.State != EndpointState.Active) name += " (not connected)";
+            items.Add(AudioTarget.Of(endpoint.EndpointId, name));
         }
 
         // A device that is not plugged in right now still belongs in the list: it is the saved choice.

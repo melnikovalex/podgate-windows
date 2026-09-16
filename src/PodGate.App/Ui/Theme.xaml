@@ -318,7 +318,7 @@
   <!-- The empty keycap that invites a shortcut -->
   <Style x:Key="KeycapPlaceholder" TargetType="Border" BasedOn="{StaticResource Keycap}">
     <Setter Property="Background" Value="Transparent"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource Fill3}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource Label3}"/>
     <Setter Property="BorderThickness" Value="1"/>
   </Style>
 

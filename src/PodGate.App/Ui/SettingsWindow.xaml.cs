@@ -12,9 +12,13 @@ public partial class SettingsWindow : DarkWindow
 {
     private bool _loading;
 
-    public SettingsWindow(HotkeyManager hotkeys)
+    private readonly Func<string>? _battery;
+
+    /// <param name="battery">The tray's current battery reading, shown next to the device.</param>
+    public SettingsWindow(HotkeyManager hotkeys, Func<string>? battery = null)
     {
         InitializeComponent();
+        _battery = battery;
         foreach (HotkeyRow row in new[] { ToggleRow, MusicRow, ConnectRow, ReleaseRow }) row.Attach(hotkeys);
 
         ChooseOtherButton.Click += (_, _) => ChooseOtherRequested?.Invoke();
@@ -77,6 +81,7 @@ public partial class SettingsWindow : DarkWindow
             string address = string.Join(":", Enumerable.Range(0, 6).Select(i => state.Address.Substring(i * 2, 2)));
             DeviceState.Text = $"{address} · {(state.Connected ? "Connected" : "Disconnected")}";
             DeviceGlyph.Foreground = (System.Windows.Media.Brush)FindResource(state.Connected ? "PodOn" : "PodOff");
+            DeviceBattery.Text = _battery?.Invoke() ?? "";
         }
         catch (Exception ex)
         {

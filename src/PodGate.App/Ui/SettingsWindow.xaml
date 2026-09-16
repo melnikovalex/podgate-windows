@@ -32,6 +32,7 @@
               <StackPanel Margin="42,0,0,0" VerticalAlignment="Center">
                 <TextBlock x:Name="DeviceName" Style="{StaticResource RowTitle}"/>
                 <TextBlock x:Name="DeviceState" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
+                <TextBlock x:Name="DeviceBattery" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
               </StackPanel>
             </Grid>
             <Button x:Name="ChooseOtherButton" Style="{StaticResource FillButton}" Margin="0,12,0,0" Content="Choose other AirPods"/>
@@ -85,22 +86,40 @@
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
             <Grid>
               <ui:HotkeyRow x:Name="ConnectRow" Action="Connect" Title="Connect" Subtitle="Music and calls" PencilOnly="True"/>
-              <Button x:Name="ConnectAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
-                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+              <Button x:Name="ConnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Center" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
             </Grid>
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
             <Grid>
               <ui:HotkeyRow x:Name="MusicRow" Action="ConnectMusic" Title="Connect for music" ShowMusicDot="True" PencilOnly="True"
                             Subtitle="Best sound quality, no microphone"/>
-              <Button x:Name="MusicAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
-                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+              <Button x:Name="MusicAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Center" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
             </Grid>
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
             <Grid>
               <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect" Subtitle="Hands them back to your phone"
                             PencilOnly="True"/>
-              <Button x:Name="DisconnectAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
-                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+              <Button x:Name="DisconnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Center" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
             </Grid>
           </StackPanel>
         </Border>
