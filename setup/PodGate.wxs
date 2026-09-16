@@ -112,9 +112,11 @@
     <!-- Hand the AirPods back before the files disappear: the service is already stopped at this point. -->
     <CustomAction Id="RestoreStock" FileRef="PodGateServiceExe" ExeCommand="--restore-stock"
                   Execute="deferred" Impersonate="no" Return="ignore" />
-    <!-- Start the tray app as the user who installed, not as the elevated installer. -->
-    <CustomAction Id="LaunchApp" FileRef="PodGateExe" ExeCommand="" Execute="immediate" Impersonate="yes"
-                  Return="asyncNoWait" />
+    <!-- Start the tray app through Explorer, which runs it as the logged-on user at normal rights. Starting
+         it directly from an elevated installer leaves a tray app nobody can close without administrator
+         rights, and hotkeys from an elevated process behave differently. -->
+    <CustomAction Id="LaunchApp" Directory="INSTALLFOLDER" Execute="immediate" Impersonate="yes" Return="asyncNoWait"
+                  ExeCommand="[WindowsFolder]explorer.exe &quot;[INSTALLFOLDER]PodGate.exe&quot;" />
 
     <InstallExecuteSequence>
       <Custom Action="RestoreStock" After="StopServices" Condition="REMOVE=&quot;ALL&quot;" />
