@@ -37,10 +37,11 @@ public static class TrayIcons
         using (var disc = new SolidBrush(Color.FromArgb(255, 28, 28, 30))) g.FillEllipse(disc, 0, 0, 32 * s, 32 * s);
 
         using var brush = new SolidBrush(pod);
-        g.FillEllipse(brush, 8 * s, 4 * s, 14 * s, 13 * s);   // the bud
+        // Close to the edge of the disc on purpose: at 16 px in a taskbar, a smaller glyph turns to mush.
+        g.FillEllipse(brush, 6 * s, 2.5f * s, 17 * s, 16 * s);   // the bud
         using var stem = new GraphicsPath();
-        stem.AddArc(16 * s, 10 * s, 6 * s, 6 * s, 180, 180);
-        stem.AddArc(16 * s, 20 * s, 6 * s, 6 * s, 0, 180);
+        stem.AddArc(17.5f * s, 9.5f * s, 7 * s, 7 * s, 180, 180);
+        stem.AddArc(17.5f * s, 22 * s, 7 * s, 7 * s, 0, 180);
         stem.CloseFigure();
         g.FillPath(brush, stem);                                // the stem, rounded at both ends
         return bitmap;

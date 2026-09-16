@@ -98,6 +98,10 @@ Releases are built from this repository by GitHub Actions. Code signing for rele
 
 Once signing is in place, each signed release is built from a tagged commit on `main`, and only binaries built from this repository's source are signed.
 
+## Trademarks
+
+AirPods and Apple are trademarks of Apple Inc. PodGate is an independent project and is not affiliated with, endorsed by or sponsored by Apple Inc. The names are used only to say which headphones this software works with.
+
 ## License
 
 [MIT](LICENSE)

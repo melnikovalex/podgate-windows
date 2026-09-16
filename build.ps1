@@ -25,6 +25,9 @@ foreach ($project in 'src\PodGate.Service\PodGate.Service.csproj', 'src\PodGate.
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $project" }
 }
 
+# Debug files are for developers, not for an installer: they only add weight and paths.
+Get-ChildItem $publish -Recurse -Filter *.pdb | Remove-Item -Force
+
 # One component per file, so every file is uninstalled again. The two executables are left out: they have
 # components of their own in PodGate.wxs (Windows takes the service's path from its component, and the
 # installer starts the tray app by file reference).

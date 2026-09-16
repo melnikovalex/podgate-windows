@@ -20,6 +20,14 @@
   <SolidColorBrush x:Key="RedTint" Color="#1FFF453A"/>
   <SolidColorBrush x:Key="Purple" Color="#FFBF5AF2"/>
   <SolidColorBrush x:Key="Dark" Color="#FF1C1C1E"/>
+  <!-- On the icon's black disc, in light and dark alike. -->
+  <SolidColorBrush x:Key="PodOn" Color="#FFF5F5F7"/>
+  <SolidColorBrush x:Key="PodOff" Color="#FF8E8E93"/>
+  <SolidColorBrush x:Key="Accent" Color="#FF4CC2FF"/>
+  <SolidColorBrush x:Key="OnAccent" Color="#FF1C1C1E"/>
+  <SolidColorBrush x:Key="WindowBorder" Color="#14FFFFFF"/>
+  <SolidColorBrush x:Key="CloseGlyph" Color="#FFEBEBF5"/>
+  <SolidColorBrush x:Key="Hover" Color="#1FFFFFFF"/>
 
   <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI</FontFamily>
   <FontFamily x:Key="TextFont">Segoe UI Variable Text, Segoe UI</FontFamily>
@@ -33,6 +41,7 @@
   <Geometry x:Key="G.Sound">M4,10 L4,14 L7,14 L12,18 L12,6 L7,10 Z M16,9 A4,4 0 0 1 16,15 M18.5,6.5 A7.5,7.5 0 0 1 18.5,17.5</Geometry>
   <Geometry x:Key="G.Undo">M9,7 L4,12 L9,17 M4,12 L14,12 A6,6 0 0 1 14,24</Geometry>
   <Geometry x:Key="G.External">M14,4 L20,4 L20,10 M20,4 L11,13 M18,14 L18,19 A1,1 0 0 1 17,20 L5,20 A1,1 0 0 1 4,19 L4,7 A1,1 0 0 1 5,6 L10,6</Geometry>
+  <Geometry x:Key="G.Pencil">M4,20 L4,16 L16,4 L20,8 L8,20 Z M14,6 L18,10</Geometry>
   <Geometry x:Key="G.Close">M0.5,0.5 L9.5,9.5 M9.5,0.5 L0.5,9.5</Geometry>
 
   <!-- Text -->
@@ -40,43 +49,43 @@
     <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
     <Setter Property="FontSize" Value="24"/>
     <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
   <Style x:Key="Body" TargetType="TextBlock">
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="LineHeight" Value="21"/>
-    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label2}"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
   <Style x:Key="RowTitle" TargetType="TextBlock">
     <Setter Property="FontSize" Value="14"/>
-    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
   <Style x:Key="Caption" TargetType="TextBlock">
     <Setter Property="FontSize" Value="12"/>
-    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label2}"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
   <Style x:Key="Caption3" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
-    <Setter Property="Foreground" Value="{StaticResource Label3}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label3}"/>
   </Style>
   <Style x:Key="SectionLabel" TargetType="TextBlock">
     <Setter Property="FontSize" Value="12"/>
     <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label2}"/>
     <Setter Property="Margin" Value="4,0,0,8"/>
   </Style>
 
   <!-- Group box and row separator -->
   <Style x:Key="GroupBox" TargetType="Border">
-    <Setter Property="Background" Value="{StaticResource Group}"/>
+    <Setter Property="Background" Value="{DynamicResource Group}"/>
     <Setter Property="CornerRadius" Value="12"/>
   </Style>
   <Style x:Key="RowSeparator" TargetType="Rectangle">
     <Setter Property="Height" Value="1"/>
-    <Setter Property="Fill" Value="{StaticResource Separator}"/>
+    <Setter Property="Fill" Value="{DynamicResource Separator}"/>
     <Setter Property="Margin" Value="52,0,0,0"/>
   </Style>
 
@@ -84,7 +93,7 @@
   <Style TargetType="ui:Glyph">
     <Setter Property="Width" Value="20"/>
     <Setter Property="Height" Value="20"/>
-    <Setter Property="Stroke" Value="{StaticResource Label2}"/>
+    <Setter Property="Stroke" Value="{DynamicResource Label2}"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ui:Glyph">
@@ -130,23 +139,23 @@
     </Setter>
   </Style>
   <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
-    <Setter Property="Background" Value="{StaticResource Label}"/>
-    <Setter Property="Foreground" Value="{StaticResource Dark}"/>
+    <Setter Property="Background" Value="{DynamicResource Accent}"/>
+    <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
   </Style>
   <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
-    <Setter Property="Background" Value="{StaticResource Group}"/>
-    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="Background" Value="{DynamicResource Group}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
   </Style>
   <Style x:Key="FillButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
     <Setter Property="Height" Value="36"/>
     <Setter Property="Padding" Value="14,0"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="Background" Value="{StaticResource Fill3}"/>
-    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="Background" Value="{DynamicResource Fill3}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
   </Style>
   <Style x:Key="LinkButton" TargetType="Button">
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label2}"/>
     <Setter Property="Cursor" Value="Hand"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
     <Setter Property="Template">
@@ -157,7 +166,7 @@
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter Property="Foreground" Value="{StaticResource Label}"/>
+              <Setter Property="Foreground" Value="{DynamicResource Label}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
               <Setter Property="Opacity" Value="0.4"/>
@@ -181,14 +190,14 @@
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Border x:Name="Box" Width="20" Height="20" CornerRadius="6" BorderThickness="1.5"
-                    BorderBrush="{StaticResource Label3}" Background="Transparent" HorizontalAlignment="Center"/>
-            <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{StaticResource Dark}" StrokeThickness="2.6"
+                    BorderBrush="{DynamicResource Label3}" Background="Transparent" HorizontalAlignment="Center"/>
+            <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{DynamicResource OnAccent}" StrokeThickness="2.6"
                       Width="14" Height="14" Visibility="Collapsed"/>
             <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="0,10,16,10"/>
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Box" Property="Background" Value="{StaticResource Label}"/>
+              <Setter TargetName="Box" Property="Background" Value="{DynamicResource Accent}"/>
               <Setter TargetName="Box" Property="BorderThickness" Value="0"/>
               <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
             </Trigger>
@@ -215,18 +224,83 @@
             </Grid.ColumnDefinitions>
             <ContentPresenter VerticalAlignment="Center"/>
             <Grid Grid.Column="1" Width="20" Height="20" Margin="0,0,16,0">
-              <Border x:Name="Box" CornerRadius="6" BorderThickness="1.5" BorderBrush="{StaticResource Label3}" Background="Transparent"/>
-              <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{StaticResource Dark}" StrokeThickness="2.6"
+              <Border x:Name="Box" CornerRadius="6" BorderThickness="1.5" BorderBrush="{DynamicResource Label3}" Background="Transparent"/>
+              <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{DynamicResource OnAccent}" StrokeThickness="2.6"
                         Width="14" Height="14" Visibility="Collapsed"/>
             </Grid>
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Box" Property="Background" Value="{StaticResource Label}"/>
+              <Setter TargetName="Box" Property="Background" Value="{DynamicResource Accent}"/>
               <Setter TargetName="Box" Property="BorderThickness" Value="0"/>
               <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
             </Trigger>
           </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Dark combo box for the audio pickers -->
+  <Style x:Key="DarkCombo" TargetType="ComboBox">
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
+    <Setter Property="Background" Value="{DynamicResource Fill3}"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="ItemContainerStyle">
+      <Setter.Value>
+        <Style TargetType="ComboBoxItem">
+          <Setter Property="Padding" Value="10,7"/>
+          <Setter Property="Foreground" Value="{DynamicResource Label}"/>
+          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ComboBoxItem">
+                <Border x:Name="Row" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
+                  <ContentPresenter/>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsHighlighted" Value="True">
+                    <Setter TargetName="Row" Property="Background" Value="{DynamicResource Hover}"/>
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ComboBox">
+          <Grid>
+            <ToggleButton x:Name="PART_Toggle" Focusable="False" ClickMode="Press"
+                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+              <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                  <Border Background="{DynamicResource Fill3}" CornerRadius="8" Padding="12,0,10,0">
+                    <Grid>
+                      <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                      <Path Data="M6,9 L12,15 L18,9" Stroke="{DynamicResource Label2}" StrokeThickness="2" Width="24" Height="24"
+                            HorizontalAlignment="Right" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Grid>
+                  </Border>
+                </ControlTemplate>
+              </ToggleButton.Template>
+              <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+            </ToggleButton>
+            <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"
+                   Focusable="False" StaysOpen="False">
+              <Border Background="{DynamicResource Group}" CornerRadius="10" BorderBrush="#22FFFFFF" BorderThickness="1"
+                      Padding="4" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="320">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                  <ItemsPresenter/>
+                </ScrollViewer>
+              </Border>
+            </Popup>
+          </Grid>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
@@ -239,11 +313,18 @@
     <Setter Property="Padding" Value="8,0"/>
     <Setter Property="Margin" Value="0,0,4,0"/>
     <Setter Property="CornerRadius" Value="6"/>
-    <Setter Property="Background" Value="{StaticResource Fill3}"/>
+    <Setter Property="Background" Value="{DynamicResource Fill3}"/>
   </Style>
+  <!-- The empty keycap that invites a shortcut -->
+  <Style x:Key="KeycapPlaceholder" TargetType="Border" BasedOn="{StaticResource Keycap}">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource Fill3}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+
   <DataTemplate x:Key="KeycapTemplate">
     <Border Style="{StaticResource Keycap}">
-      <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Label}"
+      <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Label}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Border>
   </DataTemplate>
@@ -253,8 +334,8 @@
 
   <!-- Dark window: own title bar with the PodGate glyph and a close button -->
   <Style TargetType="ui:DarkWindow">
-    <Setter Property="Background" Value="{StaticResource Background}"/>
-    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="Background" Value="{DynamicResource Background}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Label}"/>
     <Setter Property="FontFamily" Value="{StaticResource TextFont}"/>
     <Setter Property="WindowStyle" Value="None"/>
     <Setter Property="ResizeMode" Value="NoResize"/>
@@ -263,12 +344,12 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ui:DarkWindow">
-          <Border Background="{TemplateBinding Background}" BorderBrush="#14FFFFFF" BorderThickness="1">
+          <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource WindowBorder}" BorderThickness="1">
             <DockPanel>
               <Grid x:Name="PART_TitleBar" DockPanel.Dock="Top" Height="40" Background="Transparent">
                 <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
-                  <ui:AirPodGlyph Width="16" Height="16" Foreground="{StaticResource Label}"/>
-                  <TextBlock Text="{TemplateBinding Title}" Margin="8,0,0,0" FontSize="12" Foreground="{StaticResource Label2}"
+                  <ui:AirPodGlyph Width="16" Height="16" Foreground="{StaticResource PodOn}"/>
+                  <TextBlock Text="{TemplateBinding Title}" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource Label2}"
                              VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button x:Name="PART_Close" HorizontalAlignment="Right" Width="46" Height="40" Cursor="Arrow"
@@ -276,7 +357,7 @@
                   <Button.Template>
                     <ControlTemplate TargetType="Button">
                       <Border x:Name="Bg" Background="Transparent">
-                        <Path Data="{StaticResource G.Close}" Stroke="#FFEBEBF5" StrokeThickness="1" Width="10" Height="10"
+                        <Path Data="{StaticResource G.Close}" Stroke="{DynamicResource CloseGlyph}" StrokeThickness="1" Width="10" Height="10"
                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                       </Border>
                       <ControlTemplate.Triggers>

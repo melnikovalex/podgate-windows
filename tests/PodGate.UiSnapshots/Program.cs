@@ -16,6 +16,7 @@ internal static class Program
     private static int Main(string[] args)
     {
         string output = args.Length > 0 ? args[0] : Path.Combine(Environment.CurrentDirectory, "snapshots");
+        bool light = args.Contains("--light");
         Directory.CreateDirectory(output);
 
         var app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
@@ -23,6 +24,9 @@ internal static class Program
         {
             Source = new Uri("pack://application:,,,/PodGate;component/Ui/Theme.xaml"),
         });
+
+        // Light or dark with a fixed accent, so the snapshots do not change with the machine's settings.
+        AppTheme.Apply(light, System.Windows.Media.Color.FromRgb(0x00, 0x78, 0xD4));
 
         using var hotkeys = new HotkeyManager(new HotkeyConfig());
         DeviceChoice[] devices =
@@ -84,11 +88,19 @@ internal static class Program
         Show(settings);
         settings.ShowDeviceForSnapshot("AirPods Pro", "AA:BB:CC:DD:EE:01 · Disconnected");
         settings.Rows[0].ShowSample("works");
-        settings.Rows[1].ShowSample("taken");
+        settings.Rows[1].ShowSample("saved");
         settings.Rows[2].ShowSample("idle");
         settings.Rows[3].ShowSample("idle");
         Save(settings, output, "7-settings");
         settings.Close();
+
+        foreach (AudioWindow.Mode mode in Enum.GetValues<AudioWindow.Mode>())
+        {
+            var audio = new AudioWindow(mode);
+            Show(audio);
+            Save(audio, output, $"8-audio-{mode.ToString().ToLowerInvariant()}");
+            audio.Close();
+        }
 
         Console.WriteLine($"snapshots written to {output}");
         return 0;

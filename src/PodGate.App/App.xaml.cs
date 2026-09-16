@@ -45,6 +45,7 @@ public partial class App : Application
             return;
         }
 
+        Ui.AppTheme.Follow();   // light or dark, and the accent colour, as Windows has them
         AppLog.Write("app started");
         _tray = new TrayApp(PodGateConfig.Load(), settings);
         ListenForSecondStart();

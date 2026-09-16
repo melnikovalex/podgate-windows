@@ -121,6 +121,22 @@ public sealed class TrayApp : IDisposable
         return item;
     }
 
+    /// <summary>
+    /// What the popup calls the device. PodGate can manage any paired Bluetooth audio device, and calling a
+    /// Jabra headset "AirPods" would be plain wrong, so anything that is not an Apple device is just PodGate.
+    /// </summary>
+    private static string DeviceLabel()
+    {
+        try
+        {
+            return PodGateConfig.IsAppleDevice(PodGateConfig.ResolveAddress()) ? "AirPods" : "PodGate";
+        }
+        catch (Exception)
+        {
+            return "PodGate";
+        }
+    }
+
     /// <summary>True when sound is going to the AirPods right now: what ear detection acts on.</summary>
     private static bool ListeningOnPods()
     {
@@ -201,13 +217,13 @@ public sealed class TrayApp : IDisposable
     }
 
     private Task ConnectAsync() =>
-        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Full, "AirPods: connecting...", TrayIcons.White, connects: true);
+        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Full, $"{DeviceLabel()}: connecting...", TrayIcons.White, connects: true);
 
     private Task ConnectMusicAsync() =>
-        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Music, "AirPods: connecting music...", TrayIcons.Purple, connects: true);
+        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Music, $"{DeviceLabel()}: connecting music...", TrayIcons.Purple, connects: true);
 
     private Task ReleaseAsync() =>
-        RunAsync(flow => flow.ReleaseAsync(Progress()), PodGateConfig.Load().Mode, "AirPods: disconnecting...", TrayIcons.Gray, connects: false);
+        RunAsync(flow => flow.ReleaseAsync(Progress()), PodGateConfig.Load().Mode, $"{DeviceLabel()}: disconnecting...", TrayIcons.Gray, connects: false);
 
     /// <summary>
     /// One action at a time: overlapping connect and release runs can leave the AirPods in Hands-Free-only
