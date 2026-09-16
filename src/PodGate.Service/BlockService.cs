@@ -81,7 +81,16 @@ public sealed class BlockService(ILogger<BlockService> logger) : BackgroundServi
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await ReconcileAsync("service start", stoppingToken);
+        if (PodGateConfig.Load().ConnectOnStartup)
+        {
+            // The user asked for stock behaviour at boot: hand the AirPods to Windows, which connects them.
+            logger.LogInformation("connect on startup is on; unblocking");
+            await HandleAsync(PodGateVerb.Unblock, stoppingToken);
+        }
+        else
+        {
+            await ReconcileAsync("service start", stoppingToken);
+        }
 
         // A Windows or driver update can re-enable the node behind our back (test T16), so check
         // periodically rather than trusting that nothing else touches it.
@@ -117,7 +126,11 @@ public sealed class BlockService(ILogger<BlockService> logger) : BackgroundServi
         try
         {
             DeviceStatus status = _controller.GetStatus();
-            if (!status.Blocked)
+            if (PodGateConfig.Load().ConnectOnStartup)
+            {
+                logger.LogInformation("stopping: connect on startup is on, leaving the device as it is");
+            }
+            else if (!status.Blocked)
             {
                 logger.LogInformation("stopping: blocking the device first");
                 _controller.Block();

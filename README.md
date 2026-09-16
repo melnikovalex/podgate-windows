@@ -12,7 +12,7 @@ PodGate keeps the AirPods **blocked at rest** by disabling their Bluetooth devic
 
 1. Pair your AirPods with Windows once, in **Settings > Bluetooth & devices**.
 2. Download `PodGate-Setup-<version>.exe` from [Releases](https://github.com/melnikovalex/podgate-windows/releases) and run it. It asks for administrator rights once.
-3. The tray icon appears. The AirPods are disconnected from the PC from now on until you connect them.
+3. The tray icon appears and setup opens: pick your AirPods, set and test your shortcuts, and try a connect. From then on the AirPods stay with your phone until you ask for them.
 
 Installing a newer version over an existing one keeps your settings. A downgrade is refused.
 
@@ -29,6 +29,17 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 - A small card at the bottom of the screen shows progress and disappears by itself. Its close button only hides it; the action continues.
 - **Shutdown and restart** release the AirPods automatically.
 - Tray icon: white = connected, purple = connected for music, grey = disconnected.
+
+## Settings
+
+**Settings...** in the tray menu:
+
+- **AirPods:** which pair PodGate manages. **Choose other AirPods** runs setup again for the new pair and gives the old one back to Windows.
+- **Start PodGate with Windows** (per user).
+- **Connect AirPods when the PC starts:** stock Windows behaviour again. PodGate leaves the AirPods alone at shutdown, so Windows connects them at startup.
+- **Shortcuts:** change any of the four, and test each one with a live key press. A new shortcut only replaces the old one once its test press arrives.
+
+Changing the managed AirPods or the startup behaviour asks for administrator permission once, because the service takes those from machine-wide configuration.
 
 ## Uninstall
 

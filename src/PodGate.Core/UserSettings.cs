@@ -1,0 +1,48 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace PodGate.Core;
+
+/// <summary>
+/// What each user decides for themselves, without an administrator prompt: shortcuts, autostart, whether
+/// setup has run. Lives in %LOCALAPPDATA%\PodGate\settings.json. Hotkeys fall back to config.json's until
+/// the user changes one.
+/// </summary>
+public sealed class UserSettings
+{
+    public bool StartWithWindows { get; set; } = true;
+    public bool SetupCompleted { get; set; }
+    public HotkeyConfig? Hotkeys { get; set; }
+
+    private static readonly JsonSerializerOptions Options = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    public static UserSettings Load()
+    {
+        try
+        {
+            if (File.Exists(Paths.UserSettingsFile))
+            {
+                return JsonSerializer.Deserialize<UserSettings>(File.ReadAllText(Paths.UserSettingsFile), Options) ?? new UserSettings();
+            }
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            // A broken file must not stop the app; the defaults are safe.
+        }
+        return new UserSettings();
+    }
+
+    public void Save()
+    {
+        Directory.CreateDirectory(Paths.UserDataDir);
+        File.WriteAllText(Paths.UserSettingsFile, JsonSerializer.Serialize(this, Options));
+    }
+
+    public HotkeyConfig EffectiveHotkeys(PodGateConfig machine) => Hotkeys ?? machine.Hotkeys;
+}

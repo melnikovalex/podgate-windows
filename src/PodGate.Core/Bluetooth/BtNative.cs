@@ -15,6 +15,8 @@ public sealed class BtDevice
     /// <summary>When the radio last heard this device. The honest answer to "are they even in range?".</summary>
     public DateTime? LastSeen { get; init; }
     public IReadOnlyList<string> InstalledServices { get; init; } = [];
+    /// <summary>Major device class "Audio/Video" in the Class of Device: headphones, speakers, headsets.</summary>
+    public bool IsAudio => ((ClassOfDevice >> 8) & 0x1F) == 0x04;
     public uint EnumerateServicesResult { get; init; }  // Win32 code, 0 = OK
 }
 

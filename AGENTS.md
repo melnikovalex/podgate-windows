@@ -40,7 +40,7 @@ Simplest solution that works: reuse before writing, standard library and native 
 
 ## Layout and shipping
 
-- `src/PodGate.Core` (device nodes, Bluetooth, audio, IPC), `src/PodGate.Service` (Windows service), `src/PodGate.App` (tray app, WPF card), `tests/PodGate.Hardware.SmokeTests`, `scripts/` (standalone backup, restore and diagnostics), `setup/PodGate.iss` (installer).
+- `src/PodGate.Core` (device nodes, Bluetooth, audio, IPC, config), `src/PodGate.Service` (Windows service), `src/PodGate.App` (tray app, `Ui/` holds the shared theme, setup and settings windows and the progress card), `tests/PodGate.Hardware.SmokeTests` (needs real AirPods), `tests/PodGate.UiSnapshots` (renders every window to PNGs with sample data), `scripts/` (standalone backup, restore and diagnostics), `setup/PodGate.iss` (installer).
 - `VERSION` holds the semver and is the only place it lives: the assemblies and the installer both read it.
 - `build.ps1` publishes the service and the app self-contained into `artifacts\publish\PodGate` and compiles the installer into `artifacts\setup\PodGate-Setup-<version>.exe`.
 - Installed layout: everything in `%ProgramFiles%\PodGate`, Windows service `PodGate` (LocalSystem, automatic), HKLM `Run` value `PodGate` for the tray app, config and service log in `%ProgramData%\PodGate`, the app's log and state in `%LOCALAPPDATA%\PodGate`.

@@ -2,13 +2,12 @@
 
 In order. Each milestone ends with a hardware test on a real PC and a release.
 
-## 1. Onboarding and settings (0.6)
+## 1. Onboarding and settings - shipped in 0.6
 
-- First start: what PodGate does and that it is reversible, pick the AirPods (Apple devices first, by address), set and test hotkeys with live pass/fail, test connect and disconnect with progress, and leave the AirPods connected afterwards.
-- No paired AirPods found: explain how to pair, with a link to Windows' Bluetooth settings (`ms-settings:bluetooth`).
-- Settings window: current AirPods with "Choose other AirPods" (opens setup at device choice, skipping welcome and shortcuts), shortcuts with change and live test, "Start PodGate with Windows", "Connect AirPods when the PC starts" (the service then skips disconnecting at shutdown). The device choice is written elevated, showing the device again at the prompt.
-- Re-run onboarding from the tray menu at any time.
-- Todo: default sound devices per state, chosen in settings: output (and microphone) for "connected", "connected for music", and "disconnected" (default: return to the previous device).
+Setup (welcome, choose AirPods, permission, shortcuts with live tests, connect test, done), the settings window, autostart and connect-on-startup are in. Still open here:
+
+- Default sound devices per state, chosen in settings: output (and microphone) for "connected", "connected for music", and "disconnected" (default: return to the previous device).
+- Pairing link on the "no AirPods" page opens Windows' add-device page; confirm it lands there on other machines.
 
 ## 2. Battery and ear detection (0.7)
 

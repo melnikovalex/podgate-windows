@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="PodGate.UiSnapshots" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PodGate.Core\PodGate.Core.csproj" />
   </ItemGroup>
 

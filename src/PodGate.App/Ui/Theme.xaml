@@ -1,0 +1,299 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:PodGate.App.Ui">
+
+  <!-- iOS dark system greys, shared by setup, settings and the progress popup. -->
+  <Color x:Key="C.Background">#FF1C1C1E</Color>
+  <SolidColorBrush x:Key="Background" Color="#FF1C1C1E"/>
+  <SolidColorBrush x:Key="Group" Color="#FF2C2C2E"/>
+  <SolidColorBrush x:Key="Separator" Color="#FF38383A"/>
+  <SolidColorBrush x:Key="Fill3" Color="#FF3A3A3C"/>
+  <SolidColorBrush x:Key="Track" Color="#FF48484A"/>
+  <SolidColorBrush x:Key="Label" Color="#FFF5F5F7"/>
+  <SolidColorBrush x:Key="Label2" Color="#99EBEBF5"/>
+  <SolidColorBrush x:Key="Label3" Color="#4DEBEBF5"/>
+  <SolidColorBrush x:Key="StepDone" Color="#FFE5E5EA"/>
+  <SolidColorBrush x:Key="TestFill" Color="#FF636366"/>
+  <SolidColorBrush x:Key="Green" Color="#FF30D158"/>
+  <SolidColorBrush x:Key="GreenTint" Color="#2930D158"/>
+  <SolidColorBrush x:Key="Red" Color="#FFFF453A"/>
+  <SolidColorBrush x:Key="RedTint" Color="#1FFF453A"/>
+  <SolidColorBrush x:Key="Purple" Color="#FFBF5AF2"/>
+  <SolidColorBrush x:Key="Dark" Color="#FF1C1C1E"/>
+
+  <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI</FontFamily>
+  <FontFamily x:Key="TextFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+
+  <!-- 24x24 stroke glyphs -->
+  <Geometry x:Key="G.Check">M5,12.5 L9.5,17 L19,7.5</Geometry>
+  <Geometry x:Key="G.Cross">M7,7 L17,17 M17,7 L7,17</Geometry>
+  <Geometry x:Key="G.Shield">M12,3 L19,6 L19,11.5 C19,15.9 16,19.7 12,21 C8,19.7 5,15.9 5,11.5 L5,6 Z</Geometry>
+  <Geometry x:Key="G.Bluetooth">M7,7 L17,17 L12,21 L12,3 L17,7 L7,17</Geometry>
+  <Geometry x:Key="G.Keyboard">M5.5,6 L18.5,6 A2.5,2.5 0 0 1 21,8.5 L21,15.5 A2.5,2.5 0 0 1 18.5,18 L5.5,18 A2.5,2.5 0 0 1 3,15.5 L3,8.5 A2.5,2.5 0 0 1 5.5,6 Z M7,10 L7.01,10 M11,10 L11.01,10 M15,10 L15.01,10 M8,14 L16,14</Geometry>
+  <Geometry x:Key="G.Sound">M4,10 L4,14 L7,14 L12,18 L12,6 L7,10 Z M16,9 A4,4 0 0 1 16,15 M18.5,6.5 A7.5,7.5 0 0 1 18.5,17.5</Geometry>
+  <Geometry x:Key="G.Undo">M9,7 L4,12 L9,17 M4,12 L14,12 A6,6 0 0 1 14,24</Geometry>
+  <Geometry x:Key="G.External">M14,4 L20,4 L20,10 M20,4 L11,13 M18,14 L18,19 A1,1 0 0 1 17,20 L5,20 A1,1 0 0 1 4,19 L4,7 A1,1 0 0 1 5,6 L10,6</Geometry>
+  <Geometry x:Key="G.Close">M0.5,0.5 L9.5,9.5 M9.5,0.5 L0.5,9.5</Geometry>
+
+  <!-- Text -->
+  <Style x:Key="Title" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
+    <Setter Property="FontSize" Value="24"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style x:Key="Body" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="LineHeight" Value="21"/>
+    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style x:Key="RowTitle" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style x:Key="Caption" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style x:Key="Caption3" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+    <Setter Property="Foreground" Value="{StaticResource Label3}"/>
+  </Style>
+  <Style x:Key="SectionLabel" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Margin" Value="4,0,0,8"/>
+  </Style>
+
+  <!-- Group box and row separator -->
+  <Style x:Key="GroupBox" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource Group}"/>
+    <Setter Property="CornerRadius" Value="12"/>
+  </Style>
+  <Style x:Key="RowSeparator" TargetType="Rectangle">
+    <Setter Property="Height" Value="1"/>
+    <Setter Property="Fill" Value="{StaticResource Separator}"/>
+    <Setter Property="Margin" Value="52,0,0,0"/>
+  </Style>
+
+  <!-- Glyph: a 24x24 stroke path scaled to Width/Height -->
+  <Style TargetType="ui:Glyph">
+    <Setter Property="Width" Value="20"/>
+    <Setter Property="Height" Value="20"/>
+    <Setter Property="Stroke" Value="{StaticResource Label2}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ui:Glyph">
+          <Viewbox Stretch="Uniform">
+            <Path Width="24" Height="24" Data="{TemplateBinding Data}" Stroke="{TemplateBinding Stroke}"
+                  StrokeThickness="{TemplateBinding StrokeThickness}" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  StrokeLineJoin="Round"/>
+          </Viewbox>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Buttons -->
+  <Style x:Key="ButtonBase" TargetType="Button">
+    <Setter Property="Height" Value="44"/>
+    <Setter Property="Padding" Value="22,0"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Focusable" Value="True"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Chrome" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Chrome" Property="Opacity" Value="0.88"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Chrome" Property="Opacity" Value="0.75"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.4"/>
+              <Setter Property="Cursor" Value="Arrow"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+    <Setter Property="Background" Value="{StaticResource Label}"/>
+    <Setter Property="Foreground" Value="{StaticResource Dark}"/>
+  </Style>
+  <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+    <Setter Property="Background" Value="{StaticResource Group}"/>
+    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+  </Style>
+  <Style x:Key="FillButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+    <Setter Property="Height" Value="36"/>
+    <Setter Property="Padding" Value="14,0"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Background" Value="{StaticResource Fill3}"/>
+    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+  </Style>
+  <Style x:Key="LinkButton" TargetType="Button">
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Foreground" Value="{StaticResource Label2}"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border Background="Transparent" Padding="2,4">
+            <ContentPresenter VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Foreground" Value="{StaticResource Label}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Rounded-square checkbox with its label to the right -->
+  <Style x:Key="RowCheckBox" TargetType="CheckBox">
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="CheckBox">
+          <Grid Background="Transparent" MinHeight="52">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="52"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Box" Width="20" Height="20" CornerRadius="6" BorderThickness="1.5"
+                    BorderBrush="{StaticResource Label3}" Background="Transparent" HorizontalAlignment="Center"/>
+            <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{StaticResource Dark}" StrokeThickness="2.6"
+                      Width="14" Height="14" Visibility="Collapsed"/>
+            <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="0,10,16,10"/>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Box" Property="Background" Value="{StaticResource Label}"/>
+              <Setter TargetName="Box" Property="BorderThickness" Value="0"/>
+              <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- A device row that is also a radio button -->
+  <Style x:Key="DeviceRadio" TargetType="RadioButton">
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Grid Background="Transparent" MinHeight="52">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ContentPresenter VerticalAlignment="Center"/>
+            <Grid Grid.Column="1" Width="20" Height="20" Margin="0,0,16,0">
+              <Ellipse x:Name="Ring" Stroke="{StaticResource Label3}" StrokeThickness="1.5"/>
+              <Ellipse x:Name="Fill" Fill="{StaticResource Label}" Visibility="Collapsed"/>
+              <Ellipse x:Name="Dot" Width="8" Height="8" Fill="{StaticResource Dark}" Visibility="Collapsed"/>
+            </Grid>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Ring" Property="Visibility" Value="Collapsed"/>
+              <Setter TargetName="Fill" Property="Visibility" Value="Visible"/>
+              <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Keycap -->
+  <Style x:Key="Keycap" TargetType="Border">
+    <Setter Property="MinWidth" Value="26"/>
+    <Setter Property="Height" Value="26"/>
+    <Setter Property="Padding" Value="8,0"/>
+    <Setter Property="Margin" Value="0,0,4,0"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Background" Value="{StaticResource Fill3}"/>
+  </Style>
+  <DataTemplate x:Key="KeycapTemplate">
+    <Border Style="{StaticResource Keycap}">
+      <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Label}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Border>
+  </DataTemplate>
+  <ItemsPanelTemplate x:Key="HorizontalPanel">
+    <StackPanel Orientation="Horizontal"/>
+  </ItemsPanelTemplate>
+
+  <!-- Dark window: own title bar with the PodGate glyph and a close button -->
+  <Style TargetType="ui:DarkWindow">
+    <Setter Property="Background" Value="{StaticResource Background}"/>
+    <Setter Property="Foreground" Value="{StaticResource Label}"/>
+    <Setter Property="FontFamily" Value="{StaticResource TextFont}"/>
+    <Setter Property="WindowStyle" Value="None"/>
+    <Setter Property="ResizeMode" Value="NoResize"/>
+    <Setter Property="SizeToContent" Value="Manual"/>
+    <Setter Property="UseLayoutRounding" Value="True"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ui:DarkWindow">
+          <Border Background="{TemplateBinding Background}" BorderBrush="#14FFFFFF" BorderThickness="1">
+            <DockPanel>
+              <Grid x:Name="PART_TitleBar" DockPanel.Dock="Top" Height="40" Background="Transparent">
+                <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                  <ui:AirPodGlyph Width="16" Height="16" Foreground="{StaticResource Label}"/>
+                  <TextBlock Text="{TemplateBinding Title}" Margin="8,0,0,0" FontSize="12" Foreground="{StaticResource Label2}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button x:Name="PART_Close" HorizontalAlignment="Right" Width="46" Height="40" Cursor="Arrow"
+                        FocusVisualStyle="{x:Null}" IsTabStop="False">
+                  <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                      <Border x:Name="Bg" Background="Transparent">
+                        <Path Data="{StaticResource G.Close}" Stroke="#FFEBEBF5" StrokeThickness="1" Width="10" Height="10"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      </Border>
+                      <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter TargetName="Bg" Property="Background" Value="#FFC42B1C"/>
+                        </Trigger>
+                      </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </Button.Template>
+                </Button>
+              </Grid>
+              <ContentPresenter/>
+            </DockPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

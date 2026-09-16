@@ -39,8 +39,9 @@ SetupLogging=yes
 Source: "..\artifacts\publish\PodGate\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
-; Starts the tray app, unelevated, for every user who logs on.
-Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "PodGate"; ValueData: """{app}\PodGate.exe"""; Flags: uninsdeletevalue
+; Starts the tray app, unelevated, for every user who logs on. --autostart lets a user who turned
+; "Start PodGate with Windows" off in Settings keep it off without an administrator touching this value.
+Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "PodGate"; ValueData: """{app}\PodGate.exe"" --autostart"; Flags: uninsdeletevalue
 
 [Icons]
 Name: "{autoprograms}\PodGate"; Filename: "{app}\PodGate.exe"

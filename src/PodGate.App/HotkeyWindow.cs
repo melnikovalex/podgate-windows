@@ -34,6 +34,11 @@ public sealed class HotkeyWindow : NativeWindow, IDisposable
         return true;
     }
 
+    public void Unregister(int id)
+    {
+        if (_registered.Remove(id)) UnregisterHotKey(Handle, id);
+    }
+
     protected override void WndProc(ref Message m)
     {
         if (m.Msg == WmHotkey) HotkeyPressed?.Invoke(this, new HotkeyEventArgs(m.WParam.ToInt32()));

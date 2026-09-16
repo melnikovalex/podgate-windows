@@ -8,5 +8,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PodGate.Hardware.SmokeTests/PodGate.Hardware.SmokeTests.csproj" />
+    <Project Path="tests/PodGate.UiSnapshots/PodGate.UiSnapshots.csproj" />
   </Folder>
 </Solution>

@@ -21,6 +21,10 @@ if (args.Contains("--restore-stock"))
     }
 }
 
+// Before anything reads config.json: only administrators may write the file the service takes its target
+// device from. %ProgramData% lets ordinary users create files by default.
+DataDirSecurity.Apply();
+
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddWindowsService(options => options.ServiceName = "PodGate");
 builder.Services.AddSingleton<BlockService>();

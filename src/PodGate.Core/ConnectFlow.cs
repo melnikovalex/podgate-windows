@@ -100,7 +100,7 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
     public async Task<FlowResult> ReleaseAsync(IProgress<ConnectProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        progress?.Report(new ConnectProgress("Releasing...", 15));
+        progress?.Report(new ConnectProgress("Disconnecting...", 15));
 
         string address = PodGateConfig.ResolveAddress(config.Address);
         Guid? container = DeviceNodes.GetContainerId(address);
@@ -140,23 +140,23 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
             await Task.Delay(HandoverPause, cancellationToken);
         }
 
-        progress?.Report(new ConnectProgress("Disconnecting", 55));
+        progress?.Report(new ConnectProgress("Handing audio back", 55));
         PodGateResponse block = await PipeClient.SendAsync(PodGateVerb.Block, cancellationToken: cancellationToken);
-        if (!block.Ok) return new FlowResult(false, block.Error ?? "The service could not release the AirPods.", stopwatch.Elapsed);
+        if (!block.Ok) return new FlowResult(false, block.Error ?? "The service could not disconnect the AirPods.", stopwatch.Elapsed);
         _log($"blocked in {block.Seconds * 1000:N0} ms");
 
-        progress?.Report(new ConnectProgress("Blocking", 85));
+        progress?.Report(new ConnectProgress("Waiting for the link to drop", 85));
         bool quiet = await WaitUntilReleasedAsync(address, container, cancellationToken);
         stopwatch.Stop();
 
         if (!quiet)
         {
             _log("WARNING: something is still using the AirPods");
-            return new FlowResult(true, "Released, but something still holds them", stopwatch.Elapsed);
+            return new FlowResult(true, "Disconnected, but something still holds them", stopwatch.Elapsed);
         }
 
-        progress?.Report(new ConnectProgress("Released", 100));
-        return new FlowResult(true, "Released", stopwatch.Elapsed);
+        progress?.Report(new ConnectProgress("Disconnected", 100));
+        return new FlowResult(true, "Disconnected", stopwatch.Elapsed);
     }
 
     /// <summary>
