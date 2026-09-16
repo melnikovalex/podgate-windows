@@ -107,8 +107,8 @@ public class AppleAdvertTests
     [Theory]
     // pods nibbles, case nibble, what the tray shows
     [InlineData(0x86, 0x04, "L 60% · R 80% · Case 40%")]
-    [InlineData(0x99, 0x0F, "AirPods 90%")]
-    [InlineData(0xF9, 0x04, "AirPods 90% · Case 40%")]
+    [InlineData(0x99, 0x0F, "90%")]
+    [InlineData(0xF9, 0x04, "90% · Case 40%")]
     [InlineData(0x00, 0x00, "Battery unknown")]
     public void DescribesTheReadingForTheTray(byte pods, byte caseNibble, string expected)
     {

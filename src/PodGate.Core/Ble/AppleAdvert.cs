@@ -30,7 +30,8 @@ public sealed record PodStatus
 
     /// <summary>
     /// How the tray shows it. A pair in its case usually reports one value for both pods, so "L 90% · R —"
-    /// would read like a missing pod: one known value is shown as one number.
+    /// would read like a missing pod: one known value is shown as one number, and the device it belongs to
+    /// is already named in the row above.
     /// </summary>
     public string Describe()
     {
@@ -39,8 +40,8 @@ public sealed record PodStatus
         string pods = (Left, Right) switch
         {
             ({ } left, { } right) when left != right => $"L {left}% · R {right}%",
-            ({ } left, _) => $"AirPods {left}%",
-            (_, { } right) => $"AirPods {right}%",
+            ({ } left, _) => $"{left}%",
+            (_, { } right) => $"{right}%",
             _ => "",
         };
         string caseText = Case is null ? "" : $"Case {Case}%";

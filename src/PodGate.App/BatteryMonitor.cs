@@ -1,5 +1,6 @@
 using PodGate.Core;
 using PodGate.Core.Ble;
+using PodGate.Core.Bluetooth;
 using PodGate.Core.Media;
 
 namespace PodGate.App;
@@ -54,8 +55,30 @@ public sealed class BatteryMonitor : IDisposable
         _timer.Start();
     }
 
-    /// <summary>"L 80% · R 75% · Case 60%", or "Battery unknown" when nothing has been heard.</summary>
-    public static string MenuText(PodStatus? status) => status?.Describe() ?? "Battery unknown";
+    /// <summary>
+    /// "L 80% · R 75% · Case 60%" from the AirPods broadcast. Anything else Windows knows a battery for -
+    /// another headset, for instance - has a single number, and that is all it shows.
+    /// </summary>
+    public static string MenuText(PodStatus? status)
+    {
+        if (status is not null && status.HasBattery) return status.Describe();
+        int? windows = WindowsBattery();
+        return windows is null ? "Battery unknown" : $"{windows}%";
+    }
+
+    /// <summary>What Windows itself reports for the configured device, for pairs that do not broadcast.</summary>
+    private static int? WindowsBattery()
+    {
+        try
+        {
+            string? node = DeviceNodes.FindRootInstanceId(PodGateConfig.ResolveAddress());
+            return node is null ? null : CfgMgr.GetBattery(node);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
 
     private void OnUpdated(PodStatus status)
     {
