@@ -199,7 +199,10 @@
     <Grid Grid.Row="2" Margin="32,20,32,24">
       <Button x:Name="BackButton" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Content="Back"/>
       <TextBlock x:Name="FooterNote" Style="{StaticResource Caption3}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-      <Button x:Name="NextButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button x:Name="SkipButton" Style="{StaticResource SecondaryButton}" Content="Skip" Margin="0,0,12,0"
+              Visibility="Collapsed"/>
+      <Button x:Name="NextButton" Style="{StaticResource PrimaryButton}">
         <StackPanel Orientation="Horizontal">
           <Viewbox x:Name="NextShield" Width="16" Height="16" Margin="0,0,8,0" Visibility="Collapsed">
             <Canvas Width="16" Height="16">
@@ -212,6 +215,7 @@
           <TextBlock x:Name="NextText" Text="Next" VerticalAlignment="Center"/>
         </StackPanel>
       </Button>
+      </StackPanel>
     </Grid>
   </Grid>
 </ui:DarkWindow>

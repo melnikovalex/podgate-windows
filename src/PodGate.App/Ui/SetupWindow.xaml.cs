@@ -61,6 +61,7 @@ public partial class SetupWindow : DarkWindow
         }
 
         BackButton.Click += (_, _) => _secondary?.Invoke();
+        SkipButton.Click += (_, _) => Go(_flow.IndexOf(Page.Done));
         NextButton.Click += async (_, _) => await NextAsync();
         ShowOthersLink.Click += (_, _) =>
         {
@@ -111,6 +112,7 @@ public partial class SetupWindow : DarkWindow
         _index = Math.Clamp(index, 0, _flow.Count - 1);
         Page page = Current;
 
+        SkipButton.Visibility = Visibility.Collapsed;
         foreach (FrameworkElement element in new FrameworkElement[] { WelcomePage, ChoosePage, NoAirPodsPage, ShortcutsPage, TestPage, DonePage })
         {
             element.Visibility = Visibility.Collapsed;
@@ -167,9 +169,7 @@ public partial class SetupWindow : DarkWindow
                 TestPage.Visibility = Visibility.Visible;
                 ResetTest();
                 SetNextText("Start test");
-                BackButton.Content = "Skip";
-                BackButton.Visibility = Visibility.Visible;
-                _secondary = () => Go(_flow.IndexOf(Page.Done));
+                SkipButton.Visibility = Visibility.Visible;
                 break;
 
             case Page.Done:
@@ -361,7 +361,8 @@ public partial class SetupWindow : DarkWindow
         ResetTest();
         _testRunning = true;
         NextButton.IsEnabled = false;
-        BackButton.IsEnabled = false;   // skipping mid-test would leave the AirPods half connected
+        BackButton.IsEnabled = false;
+        SkipButton.IsEnabled = false;   // skipping mid-test would leave the AirPods half connected
         SetNextText("Next");
 
         bool ran;
@@ -377,6 +378,7 @@ public partial class SetupWindow : DarkWindow
         _testRunning = false;
         BackButton.IsEnabled = true;
         NextButton.IsEnabled = true;
+        SkipButton.IsEnabled = true;
 
         if (!ran)
         {
@@ -391,7 +393,7 @@ public partial class SetupWindow : DarkWindow
         else
         {
             SetNextText("Try again");
-            BackButton.Content = "Skip";
+            SkipButton.Visibility = Visibility.Visible;
         }
     }
 

@@ -87,7 +87,7 @@
             <Grid>
               <ui:HotkeyRow x:Name="ConnectRow" Action="Connect" Title="Connect" Subtitle="Music and calls" PencilOnly="True"/>
               <Button x:Name="ConnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
-                      VerticalAlignment="Center" Margin="0,0,16,0">
+                      VerticalAlignment="Bottom" Margin="0,0,16,16" AutomationProperties.Name="Configure output, mic">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
                   <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
@@ -100,7 +100,7 @@
               <ui:HotkeyRow x:Name="MusicRow" Action="ConnectMusic" Title="Connect for music" ShowMusicDot="True" PencilOnly="True"
                             Subtitle="Best sound quality, no microphone"/>
               <Button x:Name="MusicAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
-                      VerticalAlignment="Center" Margin="0,0,16,0">
+                      VerticalAlignment="Bottom" Margin="0,0,16,16" AutomationProperties.Name="Configure output, mic">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
                   <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
@@ -113,7 +113,7 @@
               <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect" Subtitle="Hands them back to your phone"
                             PencilOnly="True"/>
               <Button x:Name="DisconnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
-                      VerticalAlignment="Center" Margin="0,0,16,0">
+                      VerticalAlignment="Bottom" Margin="0,0,16,16" AutomationProperties.Name="Configure output, mic">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
                   <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"

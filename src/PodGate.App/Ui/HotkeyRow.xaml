@@ -44,7 +44,7 @@
                      VerticalAlignment="Center"/>
         </Border>
         <Button x:Name="PencilButton" Style="{StaticResource LinkButton}" Margin="10,0,0,0" Visibility="Collapsed"
-                ToolTip="Change this shortcut">
+                ToolTip="Change this shortcut" AutomationProperties.Name="Change this shortcut">
           <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15"
                     Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
         </Button>
