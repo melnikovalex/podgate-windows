@@ -55,7 +55,7 @@ internal static class Program
 
         setup.ShowPageForSnapshot(SetupWindow.Page.Shortcuts);
         setup.SetupToggleRow.ShowSample("works");
-        setup.SetupMusicRow.ShowSample("testing");
+        setup.SetupMusicRow.ShowSample("saved");
         Save(setup, output, "4-shortcuts");
 
         setup.ShowPageForSnapshot(SetupWindow.Page.Test);

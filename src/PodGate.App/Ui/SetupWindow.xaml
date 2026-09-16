@@ -22,7 +22,7 @@
       <!-- 1 Welcome -->
       <StackPanel x:Name="WelcomePage">
         <ui:AirPodGlyph Width="64" Height="64" HorizontalAlignment="Left" Foreground="{StaticResource Label}"/>
-        <TextBlock Style="{StaticResource Title}" Margin="0,20,0,0" Text="Keep your AirPods on your phone"/>
+        <TextBlock Style="{StaticResource Title}" Margin="0,20,0,0" Text="Don’t let Windows steal your AirPods"/>
         <TextBlock Style="{StaticResource Body}" Margin="0,8,0,20"
                    Text="Windows connects your AirPods by itself, at startup and after sleep, and takes them away from your phone. PodGate stops that and connects them only when you ask."/>
         <Border Style="{StaticResource GroupBox}">
@@ -140,7 +140,7 @@
       <StackPanel x:Name="ShortcutsPage" Visibility="Collapsed">
         <TextBlock Style="{StaticResource Title}" Text="Set your shortcuts"/>
         <TextBlock Style="{StaticResource Body}" Margin="0,8,0,20"
-                   Text="Press each shortcut once to check that it works. They work everywhere, even when PodGate is in the background."/>
+                   Text="These work everywhere, even when PodGate is in the background. Change one if it clashes with something you use, and test it to see it arrive."/>
         <Border Style="{StaticResource GroupBox}">
           <StackPanel>
             <ui:HotkeyRow x:Name="SetupToggleRow" Action="Toggle" Title="Connect or disconnect" Subtitle="Music and calls"/>

@@ -19,6 +19,7 @@ public partial class HotkeyRow : UserControl
         Idle,
         Recording,
         Testing,
+        Saved,
         Works,
         Problem,
     }
@@ -28,13 +29,12 @@ public partial class HotkeyRow : UserControl
     private HotkeyManager? _manager;
     private RowState _state;
     private string _problem = "";
-    private string? _revertTo;   // set while testing a combination that is not saved yet
 
     public HotkeyRow()
     {
         InitializeComponent();
         ChangeLink.Click += (_, _) => StartRecording();
-        TestLink.Click += (_, _) => StartTesting(revertTo: null);
+        TestLink.Click += (_, _) => StartTesting();
         CancelLink.Click += (_, _) => Cancel();
         ClearLink.Click += (_, _) => ClearBinding();
         // Only give up recording when the focus really leaves this row: LostKeyboardFocus bubbles, so the
@@ -84,16 +84,7 @@ public partial class HotkeyRow : UserControl
     {
         if (_manager is null) return;
         if (_state == RowState.Recording) _manager.Resume();
-        if (_state == RowState.Testing)
-        {
-            _manager.Interceptor = null;
-            if (_revertTo is not null)
-            {
-                if (_revertTo.Length == 0) _manager.Clear(Action);
-                else _manager.TryBind(Action, _revertTo);
-            }
-        }
-        _revertTo = null;
+        if (_state == RowState.Testing) _manager.Interceptor = null;
         if (_active == this) _active = null;
         if (_state is RowState.Recording or RowState.Testing) _state = RowState.Idle;
         Render();
@@ -150,11 +141,15 @@ public partial class HotkeyRow : UserControl
             return;
         }
 
-        string previous = _manager.Get(Action);
         switch (_manager.TryBind(Action, combination))
         {
             case BindResult.Ok:
-                StartTesting(revertTo: previous);
+                // Windows accepted the combination, so it is the user's shortcut from now on. Testing it is
+                // offered, never required: nobody wants to press the same keys twice to keep a change.
+                _manager.Commit();
+                if (_active == this) _active = null;
+                _state = RowState.Saved;
+                Render();
                 break;
             case BindResult.Duplicate:
                 ShowProblem("Already used by another shortcut");
@@ -168,11 +163,10 @@ public partial class HotkeyRow : UserControl
         }
     }
 
-    private void StartTesting(string? revertTo)
+    private void StartTesting()
     {
         if (_manager is null) return;
         Activate();
-        _revertTo = revertTo;
         _state = RowState.Testing;
         _manager.Interceptor = pressed =>
         {
@@ -187,8 +181,6 @@ public partial class HotkeyRow : UserControl
     {
         if (_manager is null || _state != RowState.Testing) return;
         _manager.Interceptor = null;
-        if (_revertTo is not null) _manager.Commit();
-        _revertTo = null;
         if (_active == this) _active = null;
         _state = RowState.Works;
         Render();
@@ -218,6 +210,7 @@ public partial class HotkeyRow : UserControl
         switch (state)
         {
             case "idle": _state = RowState.Idle; break;
+            case "saved": _state = RowState.Saved; break;
             case "works": _state = RowState.Works; break;
             case "testing": _state = RowState.Testing; break;
             case "taken": _state = RowState.Problem; _problem = "Taken by another app"; break;
@@ -241,7 +234,7 @@ public partial class HotkeyRow : UserControl
         ChangeLink.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
         ClearLink.Visibility = Compact && set && !busy ? Visibility.Visible : Visibility.Collapsed;
         TestLink.Visibility = set && !busy ? Visibility.Visible : Visibility.Collapsed;
-        TestLink.Content = _state == RowState.Works ? "Test again" : "Test";
+        TestLink.Content = _state is RowState.Works or RowState.Saved ? "Test it" : "Test";
         CancelLink.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
 
         StatusDot.Visibility = Visibility.Collapsed;
@@ -256,11 +249,12 @@ public partial class HotkeyRow : UserControl
                 StatusText.FontWeight = FontWeights.Normal;
                 StatusText.Foreground = (System.Windows.Media.Brush)FindResource("Label");
                 break;
+            case RowState.Saved:
             case RowState.Works:
                 StatusIcon.Visibility = Visibility.Visible;
                 StatusIcon.Data = (System.Windows.Media.Geometry)FindResource("G.Check");
                 StatusIcon.Stroke = (System.Windows.Media.Brush)FindResource("Green");
-                StatusText.Text = "Works";
+                StatusText.Text = _state == RowState.Works ? "Works" : "Saved";
                 StatusText.Foreground = StatusIcon.Stroke;
                 break;
             case RowState.Problem:
@@ -282,7 +276,7 @@ public partial class HotkeyRow : UserControl
             Grid.SetRow(Status, 1);
             Grid.SetColumn(Status, 0);
             Status.Margin = new Thickness(0, 6, 0, 0);
-            Status.Visibility = _state is RowState.Problem or RowState.Works or RowState.Testing ? Visibility.Visible : Visibility.Collapsed;
+            Status.Visibility = _state is RowState.Problem or RowState.Works or RowState.Saved or RowState.Testing ? Visibility.Visible : Visibility.Collapsed;
             Root.Margin = new Thickness(16, 10, 16, 10);
         }
     }

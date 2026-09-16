@@ -215,16 +215,16 @@
             </Grid.ColumnDefinitions>
             <ContentPresenter VerticalAlignment="Center"/>
             <Grid Grid.Column="1" Width="20" Height="20" Margin="0,0,16,0">
-              <Ellipse x:Name="Ring" Stroke="{StaticResource Label3}" StrokeThickness="1.5"/>
-              <Ellipse x:Name="Fill" Fill="{StaticResource Label}" Visibility="Collapsed"/>
-              <Ellipse x:Name="Dot" Width="8" Height="8" Fill="{StaticResource Dark}" Visibility="Collapsed"/>
+              <Border x:Name="Box" CornerRadius="6" BorderThickness="1.5" BorderBrush="{StaticResource Label3}" Background="Transparent"/>
+              <ui:Glyph x:Name="Tick" Data="{StaticResource G.Check}" Stroke="{StaticResource Dark}" StrokeThickness="2.6"
+                        Width="14" Height="14" Visibility="Collapsed"/>
             </Grid>
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Ring" Property="Visibility" Value="Collapsed"/>
-              <Setter TargetName="Fill" Property="Visibility" Value="Visible"/>
-              <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
+              <Setter TargetName="Box" Property="Background" Value="{StaticResource Label}"/>
+              <Setter TargetName="Box" Property="BorderThickness" Value="0"/>
+              <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>

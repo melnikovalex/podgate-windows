@@ -77,7 +77,7 @@
     </Grid>
 
     <Grid Grid.Row="1" Margin="32,20,32,24">
-      <TextBlock Style="{StaticResource Caption3}" VerticalAlignment="Center" Text="Shortcuts apply as soon as they pass the test"/>
+      <TextBlock Style="{StaticResource Caption3}" VerticalAlignment="Center" Text="Shortcuts are saved as soon as you type them"/>
       <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Content="Done"/>
     </Grid>
   </Grid>
