@@ -9,6 +9,7 @@ Everything committed is published. Before every commit:
 - **No personal or machine data.** No real Bluetooth addresses (use `AA:BB:CC:DD:EE:FF` / `AABBCCDDEEFF` in docs and examples), no usernames, computer names, email addresses other than the public author identity, local paths under a user profile, serial numbers or container IDs from a real machine.
 - **No logs, backups, registry exports or test results from a real machine.** Summarise findings in general terms in `docs/windows-notes.md` instead ("the Hands-Free endpoint goes active first"), never paste raw output.
 - **Machine-specific notes go to `private/`** (git-ignored): experiment logs, change ledgers, results. `backups/` (written by `scripts/backup-bt.ps1`) is git-ignored too.
+- **Agents working on a maintainer's machine:** if `private/progress.md` exists, read it first when resuming. Keep it updated after each step with the current status and every input the maintainer gives. The public plan is `docs/backlog.md`.
 - **Never commit** `*.secret.*` files (pairing link keys), `private/`, `backups/`, `artifacts/`.
 - Read the staged diff before committing and look for addresses (`XX:XX:XX:XX:XX:XX` or 12 hex digits), user profile paths and names.
 
