@@ -13,6 +13,11 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **After a boot with the node disabled, enabling it can leave the live node disabled.** ConfigFlags is cleared, but the node, never started this boot, keeps problem code 22 (`CM_PROB_DISABLED`) and has no audio children, so the connect times out with the AirPods in range. `CM_Enable_DevNode` does nothing once the flag is clear; re-enumerating, restarting the node, cycling services and an uncached SDP query do not help either. `pnputil /enable-device` starts it. `BlockController.StartIfStillDisabled` checks the live problem code, tries `CM_Setup_DevNode`, and falls back to `pnputil`. It does not happen on every boot.
 - **Endpoint states tell you where you are:** `NotPresent` after a boot with the device blocked (no KS filter exists yet), `Unplugged` after an in-session disconnect (the one-shot reconnect works), `Active` when connected.
 
+## Switching between music and call quality
+
+- **The Hands-Free side can be turned off without dropping the link.** Disabling the device's `0000111e` service while it is connected takes ~3 s, leaves the A2DP render endpoint `Active` and the baseband link up, and makes both Hands-Free endpoints `NotPresent`. Enabling it again takes ~3 s and brings a Hands-Free render and capture endpoint back as `Active`, again without touching the music stream. That is how music quality is switched on a connected pair, instead of disconnecting and reconnecting.
+- **The Hands-Free endpoints come back with new identifiers**, and the old ones linger as `NotPresent`. Anything that remembers an endpoint id must resolve it again after a switch; match by container and transport, never by a stored id.
+
 ## Audio defaults
 
 - **The Hands-Free render endpoint goes `Active` about a second before the A2DP one**, and Windows refuses it as a default output with `E_FAIL`. Connect waits for the A2DP render endpoint specifically (up to 12 s, polled every 200 ms).

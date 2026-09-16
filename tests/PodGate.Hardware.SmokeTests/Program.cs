@@ -65,6 +65,29 @@ if (action == "--pipe-selftest")
     return 0;
 }
 
+// --- turn the Hands-Free side of the AirPods off or on while they stay connected ------------------
+if (action == "--hands-free")
+{
+    string? wanted = args.SkipWhile(a => a != "--hands-free").Skip(1).FirstOrDefault();
+    if (wanted is not "on" and not "off") { Console.WriteLine("usage: --hands-free on|off"); return 2; }
+
+    string hfAddress = PodGateConfig.ResolveAddress();
+    var handsFree = new Guid("0000111e-0000-1000-8000-00805f9b34fb");
+    var watch = Stopwatch.StartNew();
+    uint result = BtNative.SetServiceState(hfAddress, handsFree, enable: wanted == "on");
+    Console.WriteLine($"  hands-free {wanted}: Win32 {result} in {watch.ElapsedMilliseconds} ms");
+
+    Guid? hfContainer = DeviceNodes.GetContainerId(hfAddress);
+    for (int i = 0; i < 6; i++)
+    {
+        await Task.Delay(1000);
+        string states = hfContainer is null ? "no container"
+            : string.Join("  ", AudioEndpoints.ForContainer(hfContainer.Value).Select(e => $"{e.Flow}/{e.Transport}={e.State}"));
+        Console.WriteLine($"  +{i + 1}s connected={BtNative.FindPairedDevice(hfAddress)?.Connected}  {states}");
+    }
+    return result == 0 ? 0 : 1;
+}
+
 // --- raw Apple advertisement bytes, to check the battery layout against real hardware --------------
 if (action == "--ble-raw")
 {
