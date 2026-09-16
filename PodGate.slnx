@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PodGate.App/PodGate.App.csproj" />
+    <Project Path="src/PodGate.Core/PodGate.Core.csproj" />
+    <Project Path="src/PodGate.Service/PodGate.Service.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PodGate.Hardware.SmokeTests/PodGate.Hardware.SmokeTests.csproj" />
+  </Folder>
+</Solution>

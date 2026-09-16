@@ -1,0 +1,16 @@
+# Pairing link keys and anything else marked secret
+*.secret.*
+
+# Machine-specific notes, logs, results, and Bluetooth snapshots from scripts/backup-bt.ps1
+private/
+backups/
+
+# Local agent entry point (points at AGENTS.md)
+CLAUDE.md
+
+# Build output
+artifacts/
+bin/
+obj/
+.vs/
+*.user

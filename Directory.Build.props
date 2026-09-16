@@ -1,0 +1,44 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- 10.0.19041.0 is what WinRT needs: Windows.Media.Control for pausing playback and
+         Windows.Devices.Bluetooth.Advertisement for the battery adverts. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+
+    <!-- Every project builds to artifacts\bin\<project>\<config>. Without this, a solution build and a
+         project build land in different folders (bin\x64\... vs bin\...), and an hour disappears into
+         debugging a "broken" service that was simply a stale exe from the other path. -->
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Self-contained so another PC needs nothing installed. Flip this one property for a small
+         build that requires the .NET Desktop Runtime instead. -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+
+    <Company>PodGate</Company>
+    <Product>PodGate</Product>
+    <Authors>PodGate</Authors>
+  </PropertyGroup>
+
+  <!-- VERSION at the repository root is the single source of truth, shared with the installer. -->
+  <Target Name="ReadVersionFile" BeforeTargets="GetAssemblyVersion;GenerateNuspec">
+    <ReadLinesFromFile File="$(MSBuildThisFileDirectory)VERSION">
+      <Output TaskParameter="Lines" PropertyName="PodGateVersion" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <Version>$(PodGateVersion.Trim())</Version>
+      <AssemblyVersion>$(Version)</AssemblyVersion>
+      <FileVersion>$(Version)</FileVersion>
+      <InformationalVersion>$(Version)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+
+</Project>

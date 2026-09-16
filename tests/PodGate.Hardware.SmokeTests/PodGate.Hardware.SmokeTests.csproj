@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Run straight from the build output; never published. Self-contained like the service it references. -->
+    <PublishSingleFile>false</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PodGate.Core\PodGate.Core.csproj" />
+    <ProjectReference Include="..\..\src\PodGate.Service\PodGate.Service.csproj" />
+  </ItemGroup>
+
+</Project>
