@@ -66,6 +66,16 @@
             </Border>
           </StackPanel>
         </ScrollViewer>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+          <Grid x:Name="PermissionNote" Visibility="Collapsed">
+            <ui:Glyph Data="{StaticResource G.Shield}" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock Style="{StaticResource Body}" FontSize="13" Margin="28,0,0,0"
+                       Text="Windows asks for administrator permission once, so PodGate’s background service knows which pair to manage. Nothing else on this PC changes."/>
+          </Grid>
+          <TextBlock x:Name="PermissionError" Style="{StaticResource Body}" FontSize="13" Margin="0,12,0,0"
+                     Foreground="{StaticResource Red}" Visibility="Collapsed"
+                     Text="PodGate didn’t get permission, so nothing was saved. Choose Next to try again."/>
+        </StackPanel>
         <Grid DockPanel.Dock="Top" Margin="0,12,0,0" x:Name="DeviceLinks">
           <Button x:Name="ShowOthersLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Left"/>
           <Button x:Name="PairNewLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right">
@@ -111,29 +121,6 @@
             </DockPanel>
           </StackPanel>
         </Border>
-      </StackPanel>
-
-      <!-- 3 Permission -->
-      <StackPanel x:Name="PermissionPage" Visibility="Collapsed">
-        <Border Width="56" Height="56" CornerRadius="28" Background="{StaticResource Group}" HorizontalAlignment="Left">
-          <ui:Glyph Data="{StaticResource G.Shield}" Width="26" Height="26"/>
-        </Border>
-        <TextBlock Style="{StaticResource Title}" Margin="0,20,0,0" Text="Allow PodGate to manage these AirPods"/>
-        <TextBlock x:Name="PermissionBody" Style="{StaticResource Body}" Margin="0,8,0,20"
-                   Text="Windows will ask for administrator permission once. PodGate saves your choice so its background service knows which AirPods to keep from connecting on their own."/>
-        <Border Style="{StaticResource GroupBox}">
-          <Grid MinHeight="52">
-            <ui:AirPodGlyph Width="24" Height="24" HorizontalAlignment="Left" Margin="16,0,0,0" Foreground="{StaticResource Label}"/>
-            <StackPanel Margin="52,10,16,10" VerticalAlignment="Center">
-              <TextBlock x:Name="PermissionDeviceName" Style="{StaticResource RowTitle}"/>
-              <TextBlock x:Name="PermissionDeviceAddress" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
-            </StackPanel>
-          </Grid>
-        </Border>
-        <TextBlock Style="{StaticResource Body}" FontSize="13" Margin="0,20,0,0"
-                   Text="Nothing else on this PC changes. Other Bluetooth devices keep working as they do now."/>
-        <TextBlock x:Name="PermissionError" Style="{StaticResource Body}" FontSize="13" Margin="0,12,0,0" Foreground="{StaticResource Red}"
-                   Visibility="Collapsed" Text="PodGate didn’t get permission, so nothing was saved. Continue to try again."/>
       </StackPanel>
 
       <!-- 4 Shortcuts -->

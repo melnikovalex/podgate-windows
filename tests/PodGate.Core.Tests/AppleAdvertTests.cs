@@ -61,6 +61,16 @@ public class AppleAdvertTests
     }
 
     [Fact]
+    public void TreatsAnAllZeroReadingAsNothingKnown()
+    {
+        // What a pair sends when it is away or not reporting: believing it warns the user about 0 %.
+        PodStatus? status = AppleAdvert.Parse(Advert(pods: 0x00, caseAndCharge: 0x00));
+
+        Assert.False(status!.HasBattery);
+        Assert.True(AppleAdvert.Parse(Advert(pods: 0x08, caseAndCharge: 0x00))!.HasBattery);
+    }
+
+    [Fact]
     public void ReadsChargingPerPod()
     {
         // Charging nibble: bit 0 is the pod that reported first, bit 2 is the case.

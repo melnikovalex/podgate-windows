@@ -22,9 +22,8 @@ public partial class SetupWindow : DarkWindow
     {
         Welcome,
         Choose,
-        Permission,
-        Shortcuts,
         Test,
+        Shortcuts,
         Done,
     }
 
@@ -47,8 +46,8 @@ public partial class SetupWindow : DarkWindow
         InitializeComponent();
         _exclusive = exclusive;
         _flow = changeDevice
-            ? [Page.Choose, Page.Permission, Page.Test, Page.Done]
-            : [Page.Welcome, Page.Choose, Page.Permission, Page.Shortcuts, Page.Test, Page.Done];
+            ? [Page.Choose, Page.Test, Page.Done]
+            : [Page.Welcome, Page.Choose, Page.Test, Page.Shortcuts, Page.Done];
 
         SetupToggleRow.Attach(hotkeys);
         SetupMusicRow.Attach(hotkeys);
@@ -112,7 +111,7 @@ public partial class SetupWindow : DarkWindow
         _index = Math.Clamp(index, 0, _flow.Count - 1);
         Page page = Current;
 
-        foreach (FrameworkElement element in new FrameworkElement[] { WelcomePage, ChoosePage, NoAirPodsPage, PermissionPage, ShortcutsPage, TestPage, DonePage })
+        foreach (FrameworkElement element in new FrameworkElement[] { WelcomePage, ChoosePage, NoAirPodsPage, ShortcutsPage, TestPage, DonePage })
         {
             element.Visibility = Visibility.Collapsed;
         }
@@ -159,15 +158,6 @@ public partial class SetupWindow : DarkWindow
                 LoadDevices();
                 break;
 
-            case Page.Permission:
-                PermissionPage.Visibility = Visibility.Visible;
-                PermissionError.Visibility = Visibility.Collapsed;
-                PermissionDeviceName.Text = _selected?.Name ?? "";
-                PermissionDeviceAddress.Text = _selected?.DisplayAddress ?? "";
-                NextShield.Visibility = NeedsElevation() ? Visibility.Visible : Visibility.Collapsed;
-                SetNextText("Continue");
-                break;
-
             case Page.Shortcuts:
                 ShortcutsPage.Visibility = Visibility.Visible;
                 SetNextText("Next");
@@ -196,7 +186,9 @@ public partial class SetupWindow : DarkWindow
             case Page.Choose when _selected is null:
                 return;
 
-            case Page.Permission:
+            case Page.Choose:
+                // Saving which pair to manage is the one administrator step, so it happens here, on the
+                // page that chose it, instead of on a page of its own.
                 if (NeedsElevation())
                 {
                     NextButton.IsEnabled = false;
@@ -269,6 +261,12 @@ public partial class SetupWindow : DarkWindow
             ? "Hide other devices"
             : $"Show {others.Count} other paired device{(others.Count == 1 ? "" : "s")}";
         NextButton.IsEnabled = _selected is not null;
+
+        // The administrator prompt only appears when the choice actually changes something.
+        PermissionError.Visibility = Visibility.Collapsed;
+        Visibility prompt = NeedsElevation() ? Visibility.Visible : Visibility.Collapsed;
+        PermissionNote.Visibility = prompt;
+        NextShield.Visibility = prompt;
     }
 
     private void Fill(StackPanel list, IReadOnlyList<DeviceChoice> devices)

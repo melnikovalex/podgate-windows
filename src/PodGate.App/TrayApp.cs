@@ -99,11 +99,6 @@ public sealed class TrayApp : IDisposable
         menu.Items.Add(Item("Connect music", _hotkeys.Get(HotkeyAction.ConnectMusic), ConnectMusicAsync));
         menu.Items.Add(Item("Disconnect", _hotkeys.Get(HotkeyAction.Release), ReleaseAsync));
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add(Toggle("Low battery warnings", settings => settings.LowBatteryWarnings,
-            (settings, value) => settings.LowBatteryWarnings = value));
-        menu.Items.Add(Toggle("Pause when a pod comes out", settings => settings.EarDetection,
-            (settings, value) => settings.EarDetection = value));
-        menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Item("Settings...", null, () =>
         {
             OpenSettings();
@@ -133,19 +128,6 @@ public sealed class TrayApp : IDisposable
         var item = new ToolStripMenuItem(text);
         if (!string.IsNullOrWhiteSpace(shortcut)) item.ShortcutKeyDisplayString = shortcut;
         item.Click += (_, _) => _ = action();
-        return item;
-    }
-
-    /// <summary>A checked menu item backed by a per-user setting: no window and no prompt to change it.</summary>
-    private static ToolStripMenuItem Toggle(string text, Func<UserSettings, bool> read, Action<UserSettings, bool> write)
-    {
-        var item = new ToolStripMenuItem(text) { CheckOnClick = true, Checked = read(UserSettings.Load()) };
-        item.CheckedChanged += (_, _) =>
-        {
-            UserSettings settings = UserSettings.Load();
-            write(settings, item.Checked);
-            settings.Save();
-        };
         return item;
     }
 

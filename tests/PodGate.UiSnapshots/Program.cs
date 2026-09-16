@@ -50,37 +50,34 @@ internal static class Program
         setup.SampleDevices = devices;
         setup.ShowPageForSnapshot(SetupWindow.Page.Choose);
 
-        setup.ShowPageForSnapshot(SetupWindow.Page.Permission);
-        Save(setup, output, "3-permission");
-
-        setup.ShowPageForSnapshot(SetupWindow.Page.Shortcuts);
-        setup.SetupToggleRow.ShowSample("works");
-        setup.SetupMusicRow.ShowSample("saved");
-        Save(setup, output, "4-shortcuts");
-
         setup.ShowPageForSnapshot(SetupWindow.Page.Test);
-        Save(setup, output, "5-test-start");
+        Save(setup, output, "3-test-start");
         setup.Steps[0].Done(TimeSpan.FromSeconds(0.1));
         setup.Steps[1].Done(TimeSpan.FromSeconds(3.4));
         setup.Steps[2].Done();
         setup.Steps[3].Running();
-        Save(setup, output, "5-test-running");
+        Save(setup, output, "3-test-running");
 
         setup.ShowPageForSnapshot(SetupWindow.Page.Test);
         setup.Steps[0].Done(TimeSpan.FromSeconds(0.1));
         setup.Steps[1].Failed("The AirPods didn’t answer within 12 seconds", TimeSpan.FromSeconds(12));
         setup.ShowTestProblemForSnapshot("Are they in the closed case or out of range?",
             "Take them out of the case, keep them near this PC, and try again. Your phone can keep using them in the meantime.");
-        Save(setup, output, "5b-test-failed");
+        Save(setup, output, "3b-test-failed");
+
+        setup.ShowPageForSnapshot(SetupWindow.Page.Shortcuts);
+        setup.SetupToggleRow.ShowSample("works");
+        setup.SetupMusicRow.ShowSample("saved");
+        Save(setup, output, "4-shortcuts");
 
         setup.SetTestPassedForSnapshot(true);
         setup.ShowPageForSnapshot(SetupWindow.Page.Done);
-        Save(setup, output, "6-done");
+        Save(setup, output, "5-done");
         setup.Close();
 
         var change = new SetupWindow(hotkeys, _ => Task.FromResult(true), changeDevice: true) { SampleDevices = devices, SaveProgress = false };
         Show(change);
-        Save(change, output, "7-change-airpods");
+        Save(change, output, "6-change-airpods");
         change.Close();
 
         var settings = new SettingsWindow(hotkeys);
@@ -90,7 +87,7 @@ internal static class Program
         settings.Rows[1].ShowSample("taken");
         settings.Rows[2].ShowSample("idle");
         settings.Rows[3].ShowSample("idle");
-        Save(settings, output, "8-settings");
+        Save(settings, output, "7-settings");
         settings.Close();
 
         Console.WriteLine($"snapshots written to {output}");

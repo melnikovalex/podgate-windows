@@ -19,12 +19,9 @@ public partial class SettingsWindow : DarkWindow
 
         ChooseOtherButton.Click += (_, _) => ChooseOtherRequested?.Invoke();
         DoneButton.Click += (_, _) => Close();
-        StartWithWindowsBox.Click += (_, _) =>
-        {
-            UserSettings settings = UserSettings.Load();
-            settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
-            settings.Save();
-        };
+        StartWithWindowsBox.Click += (_, _) => Save(settings => settings.StartWithWindows = StartWithWindowsBox.IsChecked == true);
+        LowBatteryBox.Click += (_, _) => Save(settings => settings.LowBatteryWarnings = LowBatteryBox.IsChecked == true);
+        EarDetectionBox.Click += (_, _) => Save(settings => settings.EarDetection = EarDetectionBox.IsChecked == true);
         ConnectOnStartupBox.Click += async (_, _) =>
         {
             if (_loading) return;
@@ -56,7 +53,10 @@ public partial class SettingsWindow : DarkWindow
     {
         _loading = true;
         PodGateConfig config = PodGateConfig.Load();
-        StartWithWindowsBox.IsChecked = UserSettings.Load().StartWithWindows;
+        UserSettings settings = UserSettings.Load();
+        StartWithWindowsBox.IsChecked = settings.StartWithWindows;
+        LowBatteryBox.IsChecked = settings.LowBatteryWarnings;
+        EarDetectionBox.IsChecked = settings.EarDetection;
         ConnectOnStartupBox.IsChecked = config.ConnectOnStartup;
 
         try
@@ -74,6 +74,13 @@ public partial class SettingsWindow : DarkWindow
             AppLog.Write($"settings: {ex.Message}");
         }
         _loading = false;
+    }
+
+    private static void Save(Action<UserSettings> change)
+    {
+        UserSettings settings = UserSettings.Load();
+        change(settings);
+        settings.Save();
     }
 
     /// <summary>For the UI snapshot tool.</summary>

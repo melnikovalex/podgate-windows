@@ -28,7 +28,12 @@ public sealed record PodStatus
 
     public bool AnyInEar => LeftInEar || RightInEar;
 
-    public bool HasBattery => Left is not null || Right is not null || Case is not null;
+    /// <summary>
+    /// True only for a reading worth showing. A pair that is not reporting sends zero nibbles, so an
+    /// all-zero reading means "nothing known", not "empty": warning about 0 % when the AirPods are simply
+    /// away is the bug this prevents.
+    /// </summary>
+    public bool HasBattery => Left > 0 || Right > 0 || Case > 0;
 }
 
 /// <summary>

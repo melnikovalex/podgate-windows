@@ -76,8 +76,9 @@ public sealed class BatteryMonitor : IDisposable
 
     private void Warn(PodStatus status)
     {
+        // Zero means the pair is not reporting (see PodStatus.HasBattery), so there is nothing to warn about.
         int? lowest = status.Lowest;
-        if (lowest is null) return;
+        if (lowest is null or 0 || !status.HasBattery) return;
 
         // Charging resets the warnings, so a pair put in its case warns again on the next charge cycle.
         if (status.LeftCharging && status.RightCharging || lowest > WarnAt + 5)
