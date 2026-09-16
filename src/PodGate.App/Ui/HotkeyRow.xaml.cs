@@ -34,6 +34,7 @@ public partial class HotkeyRow : UserControl
     {
         InitializeComponent();
         ChangeLink.Click += (_, _) => StartRecording();
+        PencilButton.Click += (_, _) => StartRecording();
         TestLink.Click += (_, _) => StartTesting();
         CancelLink.Click += (_, _) => Cancel();
         ClearLink.Click += (_, _) => ClearBinding();
@@ -68,6 +69,12 @@ public partial class HotkeyRow : UserControl
 
     /// <summary>Single line: keys and links next to the title (Settings' optional shortcuts).</summary>
     public bool Compact { get; set; }
+
+    /// <summary>
+    /// Settings style: the keys with a pencil to change them, and no test. Setup is where a shortcut is
+    /// tried out; in Settings, typing one is enough.
+    /// </summary>
+    public bool PencilOnly { get; set; }
 
     public HotkeyManager? Manager => _manager;
 
@@ -227,19 +234,25 @@ public partial class HotkeyRow : UserControl
         Keys.ItemsSource = _state == RowState.Recording ? null : HotkeyText.Caps(combination);
         NotSet.Text = _state == RowState.Recording ? "Type the new shortcut" : "Not set";
         NotSet.Foreground = (System.Windows.Media.Brush)FindResource(_state == RowState.Recording ? "Label" : "Label3");
-        NotSet.Visibility = _state == RowState.Recording || !set ? Visibility.Visible : Visibility.Collapsed;
+        NotSet.Visibility = (_state == RowState.Recording || !set) && !(PencilOnly && !set && _state != RowState.Recording)
+            ? Visibility.Visible : Visibility.Collapsed;
 
         bool busy = _state is RowState.Recording or RowState.Testing;
         ChangeLink.Content = set ? "Change" : "Set";
-        ChangeLink.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
-        ClearLink.Visibility = Compact && set && !busy ? Visibility.Visible : Visibility.Collapsed;
-        TestLink.Visibility = set && !busy ? Visibility.Visible : Visibility.Collapsed;
+        ChangeLink.Visibility = busy || PencilOnly ? Visibility.Collapsed : Visibility.Visible;
+        ClearLink.Visibility = !PencilOnly && Compact && set && !busy ? Visibility.Visible : Visibility.Collapsed;
+        TestLink.Visibility = !PencilOnly && set && !busy ? Visibility.Visible : Visibility.Collapsed;
         TestLink.Content = _state is RowState.Works or RowState.Saved ? "Test it" : "Test";
         CancelLink.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        PencilButton.Visibility = PencilOnly && !busy ? Visibility.Visible : Visibility.Collapsed;
+        EmptyCap.Visibility = PencilOnly && !set && _state != RowState.Recording ? Visibility.Visible : Visibility.Collapsed;
 
         StatusDot.Visibility = Visibility.Collapsed;
         StatusIcon.Visibility = Visibility.Collapsed;
         StatusText.Text = "";
+        Status.Visibility = PencilOnly && _state is not RowState.Problem and not RowState.Recording
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         StatusText.FontWeight = FontWeights.SemiBold;
         switch (_state)
         {

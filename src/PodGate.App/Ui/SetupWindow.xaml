@@ -21,7 +21,7 @@
 
       <!-- 1 Welcome -->
       <StackPanel x:Name="WelcomePage">
-        <ui:AirPodGlyph Width="64" Height="64" HorizontalAlignment="Left" Foreground="{StaticResource Label}"/>
+        <ui:AirPodGlyph Width="64" Height="64" HorizontalAlignment="Left" Foreground="{StaticResource PodOn}"/>
         <TextBlock Style="{StaticResource Title}" Margin="0,20,0,0" Text="Don’t let Windows steal your AirPods"/>
         <TextBlock Style="{StaticResource Body}" Margin="0,8,0,20"
                    Text="Windows connects your AirPods by itself, at startup and after sleep, and takes them away from your phone. PodGate stops that and connects them only when you ask."/>
@@ -167,7 +167,7 @@
         <Border Style="{StaticResource GroupBox}">
           <StackPanel>
             <Grid MinHeight="52">
-              <ui:AirPodGlyph Width="24" Height="24" HorizontalAlignment="Left" Margin="16,0,0,0" Foreground="{StaticResource Label}"/>
+              <ui:AirPodGlyph Width="24" Height="24" HorizontalAlignment="Left" Margin="16,0,0,0" Foreground="{StaticResource PodOn}"/>
               <StackPanel Margin="52,10,16,10" VerticalAlignment="Center">
                 <TextBlock x:Name="DoneDeviceName" Style="{StaticResource RowTitle}"/>
                 <TextBlock x:Name="DoneDeviceState" Style="{StaticResource Caption}" Margin="0,2,0,0"/>

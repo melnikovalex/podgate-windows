@@ -77,6 +77,36 @@ public static class AudioEndpoints
         return found;
     }
 
+    /// <summary>Every endpoint Windows currently has for a flow, newest state first: what the pickers list.</summary>
+    public static IReadOnlyList<AudioEndpoint> All(AudioFlow flow, bool activeOnly = true)
+    {
+        var found = new List<AudioEndpoint>();
+        using RegistryKey? flowKey = Registry.LocalMachine.OpenSubKey($@"{MMDevicesKey}\{flow}");
+        if (flowKey is null) return found;
+
+        foreach (string endpointName in flowKey.GetSubKeyNames())
+        {
+            using RegistryKey? endpointKey = flowKey.OpenSubKey(endpointName);
+            using RegistryKey? properties = endpointKey?.OpenSubKey("Properties");
+            if (endpointKey is null || properties is null) continue;
+
+            EndpointState state = ReadState(endpointKey);
+            if (activeOnly && state != EndpointState.Active) continue;
+
+            string instancePath = properties.GetValue(InstancePathValue) as string ?? string.Empty;
+            found.Add(new AudioEndpoint
+            {
+                Flow = flow,
+                State = state,
+                Transport = ClassifyTransport(instancePath),
+                EndpointId = $"{{0.0.{(int)flow}.00000000}}.{endpointName}",
+                FilterPath = ReadFilterPath(properties),
+                FriendlyName = $"{properties.GetValue(NameValue)} ({properties.GetValue(DescriptionValue)})",
+            });
+        }
+        return found;
+    }
+
     private static Guid? ReadContainerId(RegistryKey properties)
     {
         if (properties.GetValue(ContainerIdValue) is not byte[] raw || raw.Length != 24) return null;

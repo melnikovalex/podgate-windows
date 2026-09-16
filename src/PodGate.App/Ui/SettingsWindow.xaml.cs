@@ -19,6 +19,9 @@ public partial class SettingsWindow : DarkWindow
 
         ChooseOtherButton.Click += (_, _) => ChooseOtherRequested?.Invoke();
         RunSetupButton.Click += (_, _) => SetupRequested?.Invoke();
+        ConnectAudioLink.Click += (_, _) => ShowAudio(AudioWindow.Mode.Connect);
+        MusicAudioLink.Click += (_, _) => ShowAudio(AudioWindow.Mode.Music);
+        DisconnectAudioLink.Click += (_, _) => ShowAudio(AudioWindow.Mode.Disconnect);
         OpenLogButton.Click += (_, _) => LogRequested?.Invoke();
         DoneButton.Click += (_, _) => Close();
         StartWithWindowsBox.Click += (_, _) => Save(settings => settings.StartWithWindows = StartWithWindowsBox.IsChecked == true);
@@ -73,7 +76,7 @@ public partial class SettingsWindow : DarkWindow
             DeviceName.Text = state.Name ?? config.DeviceName;
             string address = string.Join(":", Enumerable.Range(0, 6).Select(i => state.Address.Substring(i * 2, 2)));
             DeviceState.Text = $"{address} · {(state.Connected ? "Connected" : "Disconnected")}";
-            DeviceGlyph.Foreground = (System.Windows.Media.Brush)FindResource(state.Connected ? "Label" : "Label2");
+            DeviceGlyph.Foreground = (System.Windows.Media.Brush)FindResource(state.Connected ? "PodOn" : "PodOff");
         }
         catch (Exception ex)
         {
@@ -82,6 +85,12 @@ public partial class SettingsWindow : DarkWindow
             AppLog.Write($"settings: {ex.Message}");
         }
         _loading = false;
+    }
+
+    private void ShowAudio(AudioWindow.Mode mode)
+    {
+        var window = new AudioWindow(mode) { Owner = this };
+        window.ShowDialog();
     }
 
     private static void Save(Action<UserSettings> change)

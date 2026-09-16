@@ -20,6 +20,13 @@ public sealed class UserSettings
     /// <summary>Pause what is playing when a pod comes out, start it again when it goes back in.</summary>
     public bool EarDetection { get; set; } = true;
 
+    /// <summary>Which audio devices each mode switches to. Per user, because default devices are per user.</summary>
+    public ModeAudio ConnectAudio { get; set; } = ModeAudio.Connect();
+    public ModeAudio MusicAudio { get; set; } = ModeAudio.Music();
+    public ModeAudio DisconnectAudio { get; set; } = ModeAudio.Disconnect();
+
+    public ModeAudio For(ConnectMode mode) => mode == ConnectMode.Music ? MusicAudio : ConnectAudio;
+
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true,

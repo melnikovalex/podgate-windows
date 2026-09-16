@@ -119,6 +119,26 @@ public sealed class BlockController(Action<string>? log = null)
     }
 
     /// <summary>
+    /// Turns the AirPods' Hands-Free side off or on while they stay connected: music quality without a
+    /// microphone, or both. Measured: about 3 s each way, the A2DP stream keeps playing, and the Hands-Free
+    /// endpoints come back with new identifiers.
+    /// </summary>
+    public TimeSpan SetHandsFree(bool enable, string? address = null)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        string resolved = PodGateConfig.ResolveAddress(address);
+        uint result = BtNative.SetServiceState(resolved, HandsFreeService, enable);
+        stopwatch.Stop();
+
+        // 87 is what an already-enabled service answers; anything else is a real failure.
+        if (result is not 0 and not 87) throw new InvalidOperationException($"Hands-Free could not be turned {(enable ? "on" : "off")}: Win32 {result}");
+        _log($"hands-free {(enable ? "on" : "off")} in {stopwatch.Elapsed.TotalMilliseconds:N0} ms");
+        return stopwatch.Elapsed;
+    }
+
+    private static readonly Guid HandsFreeService = new("0000111e-0000-1000-8000-00805f9b34fb");
+
+    /// <summary>
     /// Stock Windows behaviour: the device node enabled and every Bluetooth service back on. Used by the
     /// uninstaller and by the Restore verb, and deliberately the same code path for both.
     /// </summary>

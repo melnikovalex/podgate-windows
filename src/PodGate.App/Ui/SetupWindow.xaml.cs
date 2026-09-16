@@ -167,6 +167,9 @@ public partial class SetupWindow : DarkWindow
                 TestPage.Visibility = Visibility.Visible;
                 ResetTest();
                 SetNextText("Start test");
+                BackButton.Content = "Skip";
+                BackButton.Visibility = Visibility.Visible;
+                _secondary = () => Go(_flow.IndexOf(Page.Done));
                 break;
 
             case Page.Done:
@@ -287,7 +290,7 @@ public partial class SetupWindow : DarkWindow
                 Height = 24,
                 Margin = new Thickness(16, 0, 0, 0),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-                Foreground = (Brush)FindResource(device.Connected ? "Label" : "Label2"),
+                Foreground = (Brush)FindResource(device.Connected ? "PodOn" : "PodOff"),
             });
             content.Children.Add(text);
 
@@ -358,7 +361,7 @@ public partial class SetupWindow : DarkWindow
         ResetTest();
         _testRunning = true;
         NextButton.IsEnabled = false;
-        BackButton.IsEnabled = false;
+        BackButton.IsEnabled = false;   // skipping mid-test would leave the AirPods half connected
         SetNextText("Next");
 
         bool ran;
@@ -388,12 +391,7 @@ public partial class SetupWindow : DarkWindow
         else
         {
             SetNextText("Try again");
-            if (_connectFailed)
-            {
-                BackButton.Visibility = Visibility.Visible;
-                BackButton.Content = "Skip for now";
-                _secondary = () => Go(_flow.IndexOf(Page.Done));
-            }
+            BackButton.Content = "Skip";
         }
     }
 

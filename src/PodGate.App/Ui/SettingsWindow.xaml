@@ -2,7 +2,7 @@
                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                xmlns:ui="clr-namespace:PodGate.App.Ui"
-               Title="PodGate settings" Width="920" Height="660">
+               Title="PodGate settings" Width="920" Height="690">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
@@ -28,7 +28,7 @@
         <Border Style="{StaticResource GroupBox}" Padding="16,14">
           <StackPanel>
             <Grid>
-              <ui:AirPodGlyph x:Name="DeviceGlyph" Width="28" Height="28" HorizontalAlignment="Left" Foreground="{StaticResource Label}"/>
+              <ui:AirPodGlyph x:Name="DeviceGlyph" Width="28" Height="28" HorizontalAlignment="Left" Foreground="{StaticResource PodOn}"/>
               <StackPanel Margin="42,0,0,0" VerticalAlignment="Center">
                 <TextBlock x:Name="DeviceName" Style="{StaticResource RowTitle}"/>
                 <TextBlock x:Name="DeviceState" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
@@ -73,22 +73,39 @@
                    Visibility="Collapsed" Text="PodGate didn’t get permission, so this setting wasn’t changed."/>
       </StackPanel>
 
-      <!-- Right: shortcuts -->
+      <!-- Right: what each mode does -->
       <StackPanel Grid.Row="1" Grid.Column="2">
-        <TextBlock Style="{StaticResource SectionLabel}" Text="SHORTCUTS"/>
+        <TextBlock Style="{StaticResource SectionLabel}" Text="MODES"/>
         <Border Style="{StaticResource GroupBox}">
           <StackPanel>
-            <ui:HotkeyRow x:Name="ToggleRow" Action="Toggle" Title="Connect or disconnect" Subtitle="Music and calls"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="ToggleRow" Action="Toggle" Title="Connect or disconnect" PencilOnly="True"
+                            Subtitle="Whichever applies right now"/>
+            </Grid>
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
-            <ui:HotkeyRow x:Name="MusicRow" Action="ConnectMusic" Title="Connect for music" ShowMusicDot="True"
-                          Subtitle="Best sound quality, microphone stays on this PC"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="ConnectRow" Action="Connect" Title="Connect" Subtitle="Music and calls" PencilOnly="True"/>
+              <Button x:Name="ConnectAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            </Grid>
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
-            <ui:HotkeyRow x:Name="ConnectRow" Action="Connect" Title="Connect only" Subtitle="Never disconnects" Compact="True"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="MusicRow" Action="ConnectMusic" Title="Connect for music" ShowMusicDot="True" PencilOnly="True"
+                            Subtitle="Best sound quality, no microphone"/>
+              <Button x:Name="MusicAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            </Grid>
             <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
-            <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect only" Subtitle="Never connects" Compact="True"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect" Subtitle="Hands them back to your phone"
+                            PencilOnly="True"/>
+              <Button x:Name="DisconnectAudioLink" Style="{StaticResource LinkButton}" Content="Output, microphone…"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            </Grid>
           </StackPanel>
         </Border>
-        <TextBlock Style="{StaticResource Caption3}" Margin="4,10,0,0" Text="Shortcuts are saved as soon as you type them"/>
+        <TextBlock Style="{StaticResource Caption3}" Margin="4,10,0,0"
+                   Text="Switching between Connect and Connect for music keeps the AirPods connected."/>
       </StackPanel>
     </Grid>
 

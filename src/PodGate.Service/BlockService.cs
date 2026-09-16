@@ -50,6 +50,15 @@ public sealed class BlockService(ILogger<BlockService> logger) : BackgroundServi
                     return response;
                 }
 
+                case PodGateVerb.HandsFreeOn:
+                case PodGateVerb.HandsFreeOff:
+                {
+                    TimeSpan elapsed = _controller.SetHandsFree(verb == PodGateVerb.HandsFreeOn);
+                    PodGateResponse response = Describe(_controller.GetStatus());
+                    response.Seconds = elapsed.TotalSeconds;
+                    return response;
+                }
+
                 case PodGateVerb.Restore:
                     ConnectRequested = true;
                     _controller.RestoreStock();
