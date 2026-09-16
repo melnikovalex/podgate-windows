@@ -88,11 +88,16 @@
             <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect only" Subtitle="Never connects" Compact="True"/>
           </StackPanel>
         </Border>
+        <TextBlock Style="{StaticResource Caption3}" Margin="4,10,0,0" Text="Shortcuts are saved as soon as you type them"/>
       </StackPanel>
     </Grid>
 
     <Grid Grid.Row="1" Margin="32,20,32,24">
-      <TextBlock Style="{StaticResource Caption3}" VerticalAlignment="Center" Text="Shortcuts are saved as soon as you type them"/>
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <Button x:Name="RunSetupButton" Style="{StaticResource LinkButton}" Content="Run setup again"/>
+        <TextBlock Text="·" Foreground="{StaticResource Label3}" Margin="10,0" VerticalAlignment="Center"/>
+        <Button x:Name="OpenLogButton" Style="{StaticResource LinkButton}" Content="Open log"/>
+      </StackPanel>
       <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Content="Done"/>
     </Grid>
   </Grid>

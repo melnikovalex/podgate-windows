@@ -29,6 +29,25 @@ public sealed record PodStatus
     public bool AnyInEar => LeftInEar || RightInEar;
 
     /// <summary>
+    /// How the tray shows it. A pair in its case usually reports one value for both pods, so "L 90% · R —"
+    /// would read like a missing pod: one known value is shown as one number.
+    /// </summary>
+    public string Describe()
+    {
+        if (!HasBattery) return "Battery unknown";
+
+        string pods = (Left, Right) switch
+        {
+            ({ } left, { } right) when left != right => $"L {left}% · R {right}%",
+            ({ } left, _) => $"AirPods {left}%",
+            (_, { } right) => $"AirPods {right}%",
+            _ => "",
+        };
+        string caseText = Case is null ? "" : $"Case {Case}%";
+        return string.Join(" · ", new[] { pods, caseText }.Where(part => part.Length > 0));
+    }
+
+    /// <summary>
     /// True only for a reading worth showing. A pair that is not reporting sends zero nibbles, so an
     /// all-zero reading means "nothing known", not "empty": warning about 0 % when the AirPods are simply
     /// away is the bug this prevents.
@@ -45,7 +64,7 @@ public sealed record PodStatus
 ///   byte 0   0x07   type: proximity pairing
 ///   byte 1   0x19   length, 25 bytes follow
 ///   byte 3   model  0x0E AirPods Pro, 0x24 AirPods Pro 2 (USB-C), ...
-///   byte 5   status flags; bit 1 says which pod reported first, so left and right swap with it
+///   byte 5   status flags; the high nibble says which pod reported first, so left and right swap with it
 ///   byte 6   battery nibbles of the two pods, 0-10 in ten-percent steps, 0xF = not reported
 ///   byte 7   high nibble charging flags, low nibble case battery
 ///
@@ -69,8 +88,9 @@ public static class AppleAdvert
         byte pods = payload[6];
         byte caseAndCharge = payload[7];
 
-        // "Flipped" means the pod that reported first is the left one.
-        bool flipped = (status & 0x02) == 0;
+        // "Flipped" means the pod that reported first is the left one. The bit sits in the HIGH nibble of
+        // the status byte, which is the nibble every reference implementation indexes.
+        bool flipped = ((status >> 4) & 0x02) == 0;
         int? first = Battery(pods >> 4);
         int? second = Battery(pods & 0x0F);
         int charging = caseAndCharge >> 4;

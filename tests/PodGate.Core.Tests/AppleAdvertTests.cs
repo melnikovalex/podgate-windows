@@ -41,8 +41,9 @@ public class AppleAdvertTests
     [Fact]
     public void SwapsLeftAndRightWithTheFlipBit()
     {
+        // The bit is in the high nibble of the status byte: 0x20, not 0x02.
         PodStatus? flipped = AppleAdvert.Parse(Advert(status: 0x00));
-        PodStatus? straight = AppleAdvert.Parse(Advert(status: 0x02));
+        PodStatus? straight = AppleAdvert.Parse(Advert(status: 0x20));
 
         Assert.Equal(flipped!.Left, straight!.Right);
         Assert.Equal(flipped.Right, straight.Left);
@@ -74,7 +75,7 @@ public class AppleAdvertTests
     public void ReadsChargingPerPod()
     {
         // Charging nibble: bit 0 is the pod that reported first, bit 2 is the case.
-        PodStatus? status = AppleAdvert.Parse(Advert(status: 0x02, caseAndCharge: 0x14));
+        PodStatus? status = AppleAdvert.Parse(Advert(status: 0x20, caseAndCharge: 0x14));
 
         Assert.False(status!.LeftCharging);
         Assert.True(status.RightCharging);
@@ -101,6 +102,17 @@ public class AppleAdvertTests
     public void NamesKnownModels(byte model, string expected)
     {
         Assert.Equal(expected, AppleAdvert.Parse(Advert(model: model))!.ModelName);
+    }
+
+    [Theory]
+    // pods nibbles, case nibble, what the tray shows
+    [InlineData(0x86, 0x04, "L 60% · R 80% · Case 40%")]
+    [InlineData(0x99, 0x0F, "AirPods 90%")]
+    [InlineData(0xF9, 0x04, "AirPods 90% · Case 40%")]
+    [InlineData(0x00, 0x00, "Battery unknown")]
+    public void DescribesTheReadingForTheTray(byte pods, byte caseNibble, string expected)
+    {
+        Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x20, pods: pods, caseAndCharge: caseNibble))!.Describe());
     }
 
     [Fact]

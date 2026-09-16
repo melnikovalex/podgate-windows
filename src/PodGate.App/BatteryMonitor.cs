@@ -54,18 +54,8 @@ public sealed class BatteryMonitor : IDisposable
         _timer.Start();
     }
 
-    /// <summary>"L 80% · R 75% · Case 60%", collapsed to one value when the pods agree.</summary>
-    public static string MenuText(PodStatus? status)
-    {
-        if (status is null || !status.HasBattery) return "Battery unknown";
-
-        string pods = status.Left == status.Right
-            ? Percent(status.Left)
-            : $"L {Percent(status.Left)} · R {Percent(status.Right)}";
-        return status.Case is null ? pods : $"{pods} · Case {Percent(status.Case)}";
-    }
-
-    private static string Percent(int? value) => value is null ? "—" : $"{value}%";
+    /// <summary>"L 80% · R 75% · Case 60%", or "Battery unknown" when nothing has been heard.</summary>
+    public static string MenuText(PodStatus? status) => status?.Describe() ?? "Battery unknown";
 
     private void OnUpdated(PodStatus status)
     {

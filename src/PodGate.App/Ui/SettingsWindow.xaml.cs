@@ -18,6 +18,8 @@ public partial class SettingsWindow : DarkWindow
         foreach (HotkeyRow row in new[] { ToggleRow, MusicRow, ConnectRow, ReleaseRow }) row.Attach(hotkeys);
 
         ChooseOtherButton.Click += (_, _) => ChooseOtherRequested?.Invoke();
+        RunSetupButton.Click += (_, _) => SetupRequested?.Invoke();
+        OpenLogButton.Click += (_, _) => LogRequested?.Invoke();
         DoneButton.Click += (_, _) => Close();
         StartWithWindowsBox.Click += (_, _) => Save(settings => settings.StartWithWindows = StartWithWindowsBox.IsChecked == true);
         LowBatteryBox.Click += (_, _) => Save(settings => settings.LowBatteryWarnings = LowBatteryBox.IsChecked == true);
@@ -46,6 +48,12 @@ public partial class SettingsWindow : DarkWindow
 
     /// <summary>"Choose other AirPods": the tray closes this and opens setup at the device step.</summary>
     public event Action? ChooseOtherRequested;
+
+    /// <summary>"Run setup again": the whole thing, from the welcome page.</summary>
+    public event Action? SetupRequested;
+
+    /// <summary>"Open log": the app's own log file.</summary>
+    public event Action? LogRequested;
 
     internal HotkeyRow[] Rows => [ToggleRow, MusicRow, ConnectRow, ReleaseRow];
 

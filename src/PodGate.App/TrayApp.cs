@@ -104,16 +104,6 @@ public sealed class TrayApp : IDisposable
             OpenSettings();
             return Task.CompletedTask;
         }));
-        menu.Items.Add(Item("Set up again...", null, () =>
-        {
-            OpenSetup(changeDevice: false);
-            return Task.CompletedTask;
-        }));
-        menu.Items.Add(Item("Open log", null, () =>
-        {
-            Open(Paths.LogFile("app"));
-            return Task.CompletedTask;
-        }));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Item("Exit", null, () =>
         {
@@ -189,6 +179,8 @@ public sealed class TrayApp : IDisposable
         }
         _settings = new SettingsWindow(_hotkeys);
         _settings.ChooseOtherRequested += () => OpenSetup(changeDevice: true);
+        _settings.SetupRequested += () => OpenSetup(changeDevice: false);
+        _settings.LogRequested += () => Open(Paths.LogFile("app"));
         _settings.Closed += (_, _) => _settings = null;
         _settings.Show();
         _settings.Activate();

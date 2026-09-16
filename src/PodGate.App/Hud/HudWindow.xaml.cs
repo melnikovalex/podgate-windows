@@ -19,6 +19,7 @@ public partial class HudWindow : Window
     private double _shown;
     private double _target;
     private bool _closing;
+    private bool _hovered;
 
     public HudWindow()
     {
@@ -30,10 +31,19 @@ public partial class HudWindow : Window
         CloseButton.MouseEnter += (_, _) => CloseButton.Background = new SolidColorBrush(Color.FromArgb(0x44, 0xFF, 0xFF, 0xFF));
         CloseButton.MouseLeave += (_, _) => CloseButton.Background = System.Windows.Media.Brushes.Transparent;
 
-        // The percentages are only interesting when you look at the card.
-        MouseEnter += (_, _) => BatteryText.BeginAnimation(OpacityProperty, null);
-        MouseEnter += (_, _) => BatteryText.Opacity = 0.75;
-        MouseLeave += (_, _) => BatteryText.Opacity = 0;
+        // The percentages are only interesting when you look at the card, and the card stays while you do:
+        // it must not vanish from under the pointer halfway through reading them.
+        MouseEnter += (_, _) =>
+        {
+            BatteryText.Opacity = 0.75;
+            _hovered = true;
+        };
+        MouseLeave += (_, _) =>
+        {
+            BatteryText.Opacity = 0;
+            _hovered = false;
+            if (_closeAt is not null) _closeAt = DateTime.UtcNow + TimeSpan.FromMilliseconds(600);
+        };
 
         Loaded += (_, _) =>
         {
@@ -102,7 +112,7 @@ public partial class HudWindow : Window
         Fill.Width = Track.ActualWidth * (_shown / 100);
 
         // Close on request, or by itself: a card left on screen by a crashed caller is a bug the user sees.
-        if (_closing) return;
+        if (_closing || _hovered) return;
         if (DateTime.UtcNow > _deadline || (_closeAt is not null && DateTime.UtcNow > _closeAt)) BeginClose();
     }
 
