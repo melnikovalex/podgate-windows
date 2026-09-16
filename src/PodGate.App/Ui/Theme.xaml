@@ -290,7 +290,7 @@
             <Setter.Value>
               <ControlTemplate TargetType="ComboBoxItem">
                 <Border x:Name="Row" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
-                  <ContentPresenter/>
+                  <ContentPresenter TextElement.Foreground="{DynamicResource Label}"/>
                 </Border>
                 <ControlTemplate.Triggers>
                   <Trigger Property="IsHighlighted" Value="True">
@@ -321,7 +321,8 @@
                   </Border>
                 </ControlTemplate>
               </ToggleButton.Template>
-              <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+              <TextBlock Text="{Binding SelectionBoxItem, RelativeSource={RelativeSource TemplatedParent}}"
+                         Foreground="{DynamicResource Label}" TextTrimming="CharacterEllipsis"/>
             </ToggleButton>
             <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"
                    Focusable="False" StaysOpen="False">

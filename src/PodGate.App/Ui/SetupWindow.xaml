@@ -189,9 +189,17 @@
             </Grid>
           </StackPanel>
         </Border>
-        <TextBlock Style="{StaticResource Body}" FontSize="13" Margin="0,20,0,0">
-          <Run Text="PodGate stays in the tray. Click its icon for the menu, and choose "/><Run Text="Set up again" FontWeight="SemiBold" Foreground="{StaticResource Label}"/><Run Text=" or "/><Run Text="Settings" FontWeight="SemiBold" Foreground="{StaticResource Label}"/><Run Text=" to change any of this later."/>
-        </TextBlock>
+        <Border Style="{StaticResource GroupBox}" Margin="0,20,0,0" Padding="16,14">
+          <Grid>
+            <ui:AirPodGlyph Width="28" Height="28" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="{StaticResource PodOn}"/>
+            <StackPanel Margin="44,0,0,0">
+              <TextBlock Style="{StaticResource RowTitle}" Text="Look for this icon near the clock"/>
+              <TextBlock Style="{StaticResource Body}" FontSize="13" Margin="0,4,0,0">
+                <Run Text="PodGate lives in the tray, by the clock. Hidden? Click the arrow there. One click opens its menu."/>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
+        </Border>
       </StackPanel>
     </Grid>
 

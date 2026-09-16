@@ -9,6 +9,8 @@
     <RootNamespace>PodGate.App</RootNamespace>
     <AssemblyName>PodGate</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The same AirPod the tray draws, so the Start menu entry is recognisable. -->
+    <ApplicationIcon>PodGate.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

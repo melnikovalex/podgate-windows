@@ -183,7 +183,8 @@ public sealed class TrayApp : IDisposable
         _setup.Activate();
     }
 
-    public void OpenSettings()
+    /// <param name="alreadyRunning">Opened because PodGate was started a second time: say where it lives.</param>
+    public void OpenSettings(bool alreadyRunning = false)
     {
         if (_setup is not null)
         {
@@ -202,6 +203,7 @@ public sealed class TrayApp : IDisposable
         _settings.Closed += (_, _) => _settings = null;
         _settings.Show();
         _settings.Activate();
+        if (alreadyRunning) _settings.ShowAlreadyRunningHint();
     }
 
     // --- actions ---------------------------------------------------------------------------------

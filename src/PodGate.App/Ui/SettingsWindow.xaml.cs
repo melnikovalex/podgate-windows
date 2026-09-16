@@ -64,6 +64,9 @@ public partial class SettingsWindow : DarkWindow
 
     internal HotkeyRow[] Rows => [ToggleRow, MusicRow, ConnectRow, ReleaseRow];
 
+    /// <summary>Shown when the window opened because PodGate was started while it already ran.</summary>
+    public void ShowAlreadyRunningHint() => AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
+
     public void Reload()
     {
         _loading = true;

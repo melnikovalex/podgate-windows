@@ -128,7 +128,16 @@
       </StackPanel>
     </Grid>
 
-    <Grid Grid.Row="1" Margin="32,20,32,24">
+    <StackPanel Grid.Row="1">
+      <Border x:Name="AlreadyRunningHint" Background="{DynamicResource Group}" CornerRadius="12" Padding="14,10"
+              Margin="32,12,32,0" Visibility="Collapsed">
+        <Grid>
+          <ui:AirPodGlyph Width="22" Height="22" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource PodOn}"/>
+          <TextBlock Style="{StaticResource Caption}" Margin="36,0,0,0" VerticalAlignment="Center"
+                     Text="PodGate was already running: this is its window. The icon sits in the tray next to the clock, behind the arrow if the icons are hidden."/>
+        </Grid>
+      </Border>
+    <Grid Margin="32,20,32,24">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
         <Button x:Name="RunSetupButton" Style="{StaticResource LinkButton}" Content="Run setup again"/>
         <TextBlock Text="·" Foreground="{StaticResource Label3}" Margin="10,0" VerticalAlignment="Center"/>
@@ -136,5 +145,6 @@
       </StackPanel>
       <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Content="Done"/>
     </Grid>
+    </StackPanel>
   </Grid>
 </ui:DarkWindow>

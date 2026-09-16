@@ -111,7 +111,7 @@ public partial class App : Application
         {
             while (_openSettings.WaitOne())
             {
-                Dispatcher.BeginInvoke(() => _tray?.OpenSettings());
+                Dispatcher.BeginInvoke(() => _tray?.OpenSettings(alreadyRunning: true));
             }
         })
         {
