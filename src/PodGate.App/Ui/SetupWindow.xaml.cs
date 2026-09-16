@@ -333,11 +333,30 @@ public partial class SetupWindow : DarkWindow
 
     // --- permission ----------------------------------------------------------------------------------
 
+    /// <summary>
+    /// Whether saving this choice actually needs an administrator. It does not when the service would pick
+    /// the same device by itself: with one pair of AirPods paired, PodGate resolves it automatically, so
+    /// writing the machine configuration would change nothing and the prompt would be for show.
+    /// </summary>
     private bool NeedsElevation()
     {
         if (_selected is null) return false;
+
         PodGateConfig config = PodGateConfig.Load();
-        return !File.Exists(Paths.ConfigFile) || !string.Equals(config.Address, _selected.Address, StringComparison.OrdinalIgnoreCase);
+        if (File.Exists(Paths.ConfigFile))
+        {
+            return !string.Equals(config.Address, _selected.Address, StringComparison.OrdinalIgnoreCase);
+        }
+
+        try
+        {
+            // No configuration yet: only ask when the automatic choice differs from what the user picked.
+            return !string.Equals(PodGateConfig.ResolveAddress(), _selected.Address, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception)
+        {
+            return true;   // several Apple devices, or none: the choice has to be written down
+        }
     }
 
     // --- test ----------------------------------------------------------------------------------------
