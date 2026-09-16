@@ -14,6 +14,12 @@ public sealed class UserSettings
     public bool SetupCompleted { get; set; }
     public HotkeyConfig? Hotkeys { get; set; }
 
+    /// <summary>Warn at 20 % and again at 5 %.</summary>
+    public bool LowBatteryWarnings { get; set; } = true;
+
+    /// <summary>Pause what is playing when a pod comes out, start it again when it goes back in.</summary>
+    public bool EarDetection { get; set; } = true;
+
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true,

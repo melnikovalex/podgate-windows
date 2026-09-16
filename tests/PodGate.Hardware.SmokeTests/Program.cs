@@ -65,6 +65,61 @@ if (action == "--pipe-selftest")
     return 0;
 }
 
+// --- raw Apple advertisement bytes, to check the battery layout against real hardware --------------
+if (action == "--ble-raw")
+{
+    var payloads = new Dictionary<string, int>();
+    var raw = new Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher
+    {
+        ScanningMode = Windows.Devices.Bluetooth.Advertisement.BluetoothLEScanningMode.Passive,
+    };
+    raw.Received += (_, e) =>
+    {
+        foreach (var section in e.Advertisement.ManufacturerData)
+        {
+            if (section.CompanyId != 0x004C) continue;
+            var bytes = new byte[section.Data.Length];
+            using (var reader = Windows.Storage.Streams.DataReader.FromBuffer(section.Data)) reader.ReadBytes(bytes);
+            string hex = Convert.ToHexString(bytes);
+            lock (payloads)
+            {
+                if (payloads.TryGetValue(hex, out int count)) { payloads[hex] = count + 1; return; }
+                payloads[hex] = 1;
+            }
+            Console.WriteLine($"  {DateTime.Now:HH:mm:ss} rssi={e.RawSignalStrengthInDBm,4} len={bytes.Length,2} {hex}");
+        }
+    };
+    raw.Start();
+    Console.WriteLine("  dumping distinct Apple payloads for 30 s");
+    await Task.Delay(TimeSpan.FromSeconds(30));
+    raw.Stop();
+    Console.WriteLine($"  {payloads.Count} distinct payloads");
+    return 0;
+}
+
+// --- watch the Apple battery advertisement (manufacturer 0x004C) -----------------------------------
+if (action == "--ble-watch")
+{
+    int seconds = 30;
+    string? secondsArg = args.SkipWhile(a => a != "--ble-watch").Skip(1).FirstOrDefault();
+    if (secondsArg is not null && int.TryParse(secondsArg, out int parsed)) seconds = parsed;
+
+    using var watcher = new PodGate.Core.Ble.PodWatcher(minimumRssi: -95, log: Console.WriteLine);
+    watcher.Updated += status => Console.WriteLine(
+        $"  {status.Seen:HH:mm:ss} rssi={status.Rssi,4} model=0x{status.Model:X2} {status.ModelName,-38} " +
+        $"L={Show(status.Left)}{(status.LeftCharging ? "+" : " ")} R={Show(status.Right)}{(status.RightCharging ? "+" : " ")} " +
+        $"case={Show(status.Case)}{(status.CaseCharging ? "+" : " ")} inEar={(status.LeftInEar ? "L" : "-")}{(status.RightInEar ? "R" : "-")} " +
+        $"");
+    watcher.Start();
+    Console.WriteLine($"  listening for {seconds} s; open the case, put a pod in, take it out...");
+    await Task.Delay(TimeSpan.FromSeconds(seconds));
+    watcher.Stop();
+    Console.WriteLine(watcher.Current is null ? "FAIL  no Apple advertisement heard" : "PASS  advertisements received");
+    return watcher.Current is null ? 1 : 0;
+
+    static string Show(int? value) => value is null ? " ? " : $"{value,3}";
+}
+
 // --- live enable: CM_Enable_DevNode on the root, reporting live problem code before and after -----
 if (action == "--live-enable")
 {

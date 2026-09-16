@@ -29,4 +29,31 @@ public static class MediaControls
         }
         return paused;
     }
+
+    /// <summary>
+    /// Starts again exactly what PodGate paused, and nothing else: a pod back in the ear must not start
+    /// music the user paused themselves, or a video in some other window.
+    /// </summary>
+    public static async Task ResumeAsync(IReadOnlyList<string> apps, CancellationToken cancellationToken = default)
+    {
+        if (apps.Count == 0) return;
+        try
+        {
+            GlobalSystemMediaTransportControlsSessionManager manager =
+                await GlobalSystemMediaTransportControlsSessionManager.RequestAsync().AsTask(cancellationToken);
+
+            foreach (GlobalSystemMediaTransportControlsSession session in manager.GetSessions())
+            {
+                if (!apps.Contains(session.SourceAppUserModelId)) continue;
+                if (session.GetPlaybackInfo().PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
+                {
+                    await session.TryPlayAsync().AsTask(cancellationToken);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Same rule as pausing: the media stack must never break anything else.
+        }
+    }
 }

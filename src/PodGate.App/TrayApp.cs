@@ -22,6 +22,8 @@ public sealed class TrayApp : IDisposable
     private readonly HotkeyManager _hotkeys;
     private readonly Timer _stateTimer = new() { Interval = 3000 };
     private readonly ToolStripMenuItem _statusItem = new("PodGate") { Enabled = false };
+    private readonly ToolStripMenuItem _batteryItem = new("Battery unknown") { Enabled = false };
+    private readonly BatteryMonitor _battery;
     private readonly SemaphoreSlim _busy = new(1, 1);
 
     private HudWindow? _hud;
@@ -71,6 +73,16 @@ public sealed class TrayApp : IDisposable
             old.Dispose();
         };
 
+        _battery = new BatteryMonitor(ListeningOnPods, (title, text) => _icon.ShowBalloonTip(6000, title, text, ToolTipIcon.Info));
+        _battery.Changed += status => Application.Current.Dispatcher.Invoke(() =>
+        {
+            string text = BatteryMonitor.MenuText(status);
+            if (text != _batteryItem.Text) AppLog.Write($"battery: {text} ({status?.ModelName ?? "no advertisement"})");
+            _batteryItem.Text = text;
+            _hud?.SetBattery(status?.Lowest, text);
+        });
+        _battery.Start();
+
         _stateTimer.Tick += (_, _) => RefreshState();
         _stateTimer.Start();
         RefreshState();
@@ -80,11 +92,17 @@ public sealed class TrayApp : IDisposable
     {
         var menu = new ContextMenuStrip();
         menu.Items.Add(_statusItem);
+        menu.Items.Add(_batteryItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Item("Connect / Disconnect", _hotkeys.Get(HotkeyAction.Toggle), ToggleAsync));
         menu.Items.Add(Item("Connect", _hotkeys.Get(HotkeyAction.Connect), ConnectAsync));
         menu.Items.Add(Item("Connect music", _hotkeys.Get(HotkeyAction.ConnectMusic), ConnectMusicAsync));
         menu.Items.Add(Item("Disconnect", _hotkeys.Get(HotkeyAction.Release), ReleaseAsync));
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add(Toggle("Low battery warnings", settings => settings.LowBatteryWarnings,
+            (settings, value) => settings.LowBatteryWarnings = value));
+        menu.Items.Add(Toggle("Pause when a pod comes out", settings => settings.EarDetection,
+            (settings, value) => settings.EarDetection = value));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Item("Settings...", null, () =>
         {
@@ -116,6 +134,37 @@ public sealed class TrayApp : IDisposable
         if (!string.IsNullOrWhiteSpace(shortcut)) item.ShortcutKeyDisplayString = shortcut;
         item.Click += (_, _) => _ = action();
         return item;
+    }
+
+    /// <summary>A checked menu item backed by a per-user setting: no window and no prompt to change it.</summary>
+    private static ToolStripMenuItem Toggle(string text, Func<UserSettings, bool> read, Action<UserSettings, bool> write)
+    {
+        var item = new ToolStripMenuItem(text) { CheckOnClick = true, Checked = read(UserSettings.Load()) };
+        item.CheckedChanged += (_, _) =>
+        {
+            UserSettings settings = UserSettings.Load();
+            write(settings, item.Checked);
+            settings.Save();
+        };
+        return item;
+    }
+
+    /// <summary>True when sound is going to the AirPods right now: what ear detection acts on.</summary>
+    private static bool ListeningOnPods()
+    {
+        try
+        {
+            Guid? container = PodGate.Core.Bluetooth.DeviceNodes.GetContainerId(PodGateConfig.ResolveAddress());
+            if (container is null) return false;
+            string? current = PodGate.Core.Audio.AudioPolicy.GetDefault(PodGate.Core.Audio.AudioFlow.Render, PodGate.Core.Audio.AudioRole.Console);
+            return current is not null && PodGate.Core.Audio.AudioEndpoints.ForContainer(container.Value)
+                .Any(endpoint => endpoint.EndpointId == current);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write($"could not tell where sound is going: {ex.Message}");
+            return false;
+        }
     }
 
     private static void Open(string path)
@@ -254,6 +303,7 @@ public sealed class TrayApp : IDisposable
         _hud?.Close();
         _hud = new HudWindow();
         _hud.SetTitle(title, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+        _hud.SetBattery(_battery.Current?.Lowest, BatteryMonitor.MenuText(_battery.Current));
         _hud.Closed += (_, _) => _hud = null;
         _hud.Show();
     });
@@ -293,6 +343,7 @@ public sealed class TrayApp : IDisposable
 
     public void Dispose()
     {
+        _battery.Dispose();
         _stateTimer.Stop();
         _stateTimer.Dispose();
         _hotkeys.Dispose();

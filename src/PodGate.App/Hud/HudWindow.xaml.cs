@@ -30,6 +30,11 @@ public partial class HudWindow : Window
         CloseButton.MouseEnter += (_, _) => CloseButton.Background = new SolidColorBrush(Color.FromArgb(0x44, 0xFF, 0xFF, 0xFF));
         CloseButton.MouseLeave += (_, _) => CloseButton.Background = System.Windows.Media.Brushes.Transparent;
 
+        // The percentages are only interesting when you look at the card.
+        MouseEnter += (_, _) => BatteryText.BeginAnimation(OpacityProperty, null);
+        MouseEnter += (_, _) => BatteryText.Opacity = 0.75;
+        MouseLeave += (_, _) => BatteryText.Opacity = 0;
+
         Loaded += (_, _) =>
         {
             Rect area = SystemParameters.WorkArea;
@@ -47,6 +52,32 @@ public partial class HudWindow : Window
     {
         TitleText.Text = title;
         TitleText.Foreground = new SolidColorBrush(color);
+    }
+
+    /// <summary>
+    /// Battery on the card: a glyph that goes yellow at 20% and red at 5%, with the percentages hidden until
+    /// the pointer is over the card. Null hides it, which is what "no advertisement heard yet" looks like.
+    /// </summary>
+    public void SetBattery(int? lowest, string text)
+    {
+        if (lowest is null)
+        {
+            Battery.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        Color colour = lowest <= 5 ? Color.FromRgb(0xFF, 0x45, 0x3A)
+            : lowest <= 20 ? Color.FromRgb(0xFF, 0xD6, 0x0A)
+            : Color.FromRgb(0x8E, 0x8E, 0x93);
+        var brush = new SolidColorBrush(colour);
+        var shell = new SolidColorBrush(colour) { Opacity = 0.55 };
+
+        BatteryShell.BorderBrush = shell;
+        BatteryTip.Background = shell;
+        BatteryLevel.Background = brush;
+        BatteryLevel.Width = Math.Max(1.5, 17 * lowest.Value / 100.0);
+        BatteryText.Text = text;
+        Battery.Visibility = Visibility.Visible;
     }
 
     public void Update(string status, int percent)
