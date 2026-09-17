@@ -14,3 +14,6 @@ bin/
 obj/
 .vs/
 *.user
+
+# agent worktrees
+.claude/worktrees/
