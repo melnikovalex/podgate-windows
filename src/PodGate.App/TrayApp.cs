@@ -30,6 +30,13 @@ public sealed class TrayApp : IDisposable
     private bool _balloonConnects;
 
     /// <summary>
+    /// When the second half of a double click landed. Windows sends a button-up for both clicks, so
+    /// WinForms raises MouseClick twice and the second one would start the menu timer again straight after
+    /// MouseDoubleClick had cancelled it - which is why the menu still appeared on a double click.
+    /// </summary>
+    private DateTime _doubleClicked = DateTime.MinValue;
+
+    /// <summary>
     /// Holds a left click back long enough to see whether a second one follows. Without it a double click
     /// never reaches us: the first click would open the menu, the menu would take the mouse, and the second
     /// click would only dismiss it. The wait is Windows' own double-click time, so it matches every other
@@ -64,6 +71,7 @@ public sealed class TrayApp : IDisposable
         _icon.MouseClick += (_, e) =>
         {
             if (e.Button != MouseButtons.Left) return;
+            if (DateTime.UtcNow - _doubleClicked < TimeSpan.FromMilliseconds(400)) return;   // the tail of a double click
             _clickTimer.Stop();
             _clickTimer.Start();
         };
@@ -71,6 +79,7 @@ public sealed class TrayApp : IDisposable
         _icon.MouseDoubleClick += (_, e) =>
         {
             if (e.Button != MouseButtons.Left) return;
+            _doubleClicked = DateTime.UtcNow;
             _clickTimer.Stop();
             OpenSettings();
         };

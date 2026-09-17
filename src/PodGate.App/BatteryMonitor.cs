@@ -23,6 +23,13 @@ public sealed class BatteryMonitor : IDisposable
 
     /// <summary>Offer once, then leave it alone: a pair on the desk advertises every couple of seconds.</summary>
     private static readonly TimeSpan AskAgainAfter = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Silence for this long counts as the AirPods having gone away, so opening the case again is a fresh
+    /// arrival. A closed case stops advertising within seconds, and waiting for the battery reading to go
+    /// stale instead would mean no offer at all when the lid is shut and opened a minute later.
+    /// </summary>
+    private static readonly TimeSpan AwayAfter = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan ResumeWindow = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan Stale = TimeSpan.FromMinutes(3);
 
@@ -35,6 +42,7 @@ public sealed class BatteryMonitor : IDisposable
     private bool _warnedLow;
     private bool _warnedVeryLow;
     private bool _wasNearby;
+    private DateTimeOffset _heard = DateTimeOffset.MinValue;
     private DateTimeOffset _asked = DateTimeOffset.MinValue;
     private bool _wasInEar;
     private IReadOnlyList<string> _paused = [];
@@ -58,6 +66,7 @@ public sealed class BatteryMonitor : IDisposable
         _timer.Tick += (_, _) =>
         {
             _watcher.Expire(Stale);
+            if (DateTimeOffset.Now - _heard > AwayAfter) _wasNearby = false;
             if (_paused.Count > 0 && DateTimeOffset.Now - _pausedAt > ResumeWindow) _paused = [];
         };
     }
@@ -122,22 +131,29 @@ public sealed class BatteryMonitor : IDisposable
     {
         Changed?.Invoke(status);
         Warn(status);
-        Arrive(status);
+        Arrive(status);            // before EarDetectionAsync: it reads the previous in-ear state
         _ = EarDetectionAsync(status);
     }
 
     /// <summary>
-    /// Offers to connect when the AirPods come within reach, for people who would rather not remember the
-    /// shortcut. Only on the edge from away to here: the pair advertises every couple of seconds, so acting
-    /// on the reading itself would ask again and again while they simply sit on the desk.
+    /// Offers to connect when the AirPods turn up, for people who would rather not remember the shortcut.
+    ///
+    /// Two things count as turning up: coming within reach after being away, and going into an ear. The
+    /// second is the stronger signal - putting a pod in is a decision, being in the room is not - and it
+    /// covers the case where the AirPods were never out of range to begin with. Either way it is the edge
+    /// that matters, not the state: the pair advertises every couple of seconds, so acting on the reading
+    /// itself would ask over and over while they sit on the desk.
     /// </summary>
     private void Arrive(PodStatus status)
     {
+        _heard = DateTimeOffset.Now;
+
         bool nearby = status.Rssi >= NearbyRssi;
-        bool wasNearby = _wasNearby;
+        bool arrived = nearby && !_wasNearby;
+        bool putIn = status.InEar && !_wasInEar;
         _wasNearby = nearby;
 
-        if (!nearby || wasNearby) return;
+        if (!arrived && !putIn) return;
         if (DateTimeOffset.Now - _asked < AskAgainAfter) return;
         if (!UserSettings.Load().AskWhenNearby) return;
         if (_connected()) return;

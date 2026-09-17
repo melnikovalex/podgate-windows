@@ -72,9 +72,16 @@ public partial class SettingsWindow : DarkWindow
     /// </summary>
     public void ShowAlreadyRunningHint() => AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
 
+    /// <summary>The build that is running, from the assembly rather than a string kept in step by hand.</summary>
+    private static string Version =>
+        System.Reflection.Assembly.GetExecutingAssembly().GetName().Version is { } version
+            ? $"v{version.Major}.{version.Minor}.{version.Build}"
+            : "";
+
     public void Reload()
     {
         _loading = true;
+        VersionText.Text = Version;
         PodGateConfig config = PodGateConfig.Load();
         UserSettings settings = UserSettings.Load();
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;

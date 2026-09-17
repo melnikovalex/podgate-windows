@@ -174,6 +174,7 @@
         <Button x:Name="RunSetupButton" Style="{StaticResource LinkButton}" Content="Run setup again"/>
         <TextBlock Text="·" Foreground="{StaticResource Label3}" Margin="10,0" VerticalAlignment="Center"/>
         <Button x:Name="OpenLogButton" Style="{StaticResource LinkButton}" Content="Open log"/>
+        <TextBlock x:Name="VersionText" Style="{StaticResource Caption3}" Margin="14,0,0,0" VerticalAlignment="Center"/>
       </StackPanel>
       <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Content="Done"/>
     </Grid>
