@@ -92,6 +92,8 @@ internal static class Program
         settings.Rows[2].ShowSample("idle");
         settings.Rows[3].ShowSample("idle");
         Save(settings, output, "7-settings");
+        settings.ShowAlreadyRunningHint();
+        Save(settings, output, "7b-settings-already-running");
         settings.Close();
 
         foreach (AudioWindow.Mode mode in Enum.GetValues<AudioWindow.Mode>())

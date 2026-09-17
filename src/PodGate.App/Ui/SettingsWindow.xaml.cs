@@ -64,8 +64,17 @@ public partial class SettingsWindow : DarkWindow
 
     internal HotkeyRow[] Rows => [ToggleRow, MusicRow, ConnectRow, ReleaseRow];
 
-    /// <summary>Shown when the window opened because PodGate was started while it already ran.</summary>
-    public void ShowAlreadyRunningHint() => AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
+    /// <summary>
+    /// Shown when the window opened because PodGate was started while it already ran. The window grows by
+    /// the hint's height: taking the space out of the settings above would squeeze a group off the bottom.
+    /// </summary>
+    public void ShowAlreadyRunningHint()
+    {
+        if (AlreadyRunningHint.Visibility == System.Windows.Visibility.Visible) return;
+        AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
+        AlreadyRunningHint.Measure(new System.Windows.Size(Width - 64, double.PositiveInfinity));
+        Height += AlreadyRunningHint.DesiredSize.Height + 12;   // 12 is the hint's top margin
+    }
 
     public void Reload()
     {

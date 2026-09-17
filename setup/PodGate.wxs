@@ -39,8 +39,10 @@
     <util:CloseApplication Id="CloseTrayApp" Target="PodGate.exe" CloseMessage="yes" TerminateProcess="1"
                            RebootPrompt="no" />
 
-    <Icon Id="PodGateIcon" SourceFile="$(PublishDir)\PodGate.exe" />
-    <Property Id="ARPPRODUCTICON" Value="PodGateIcon" />
+    <!-- The id carries the extension on purpose: Windows uses it when it extracts the icon for the
+         Installed-apps entry, and without it the entry ends up with no icon at all. -->
+    <Icon Id="PodGate.ico" SourceFile="$(IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="PodGate.ico" />
     <Property Id="ARPHELPLINK" Value="https://github.com/melnikovalex/podgate-windows" />
     <WixVariable Id="WixUILicenseRtf" Value="setup\license.rtf" />
     <ui:WixUI Id="WixUI_Minimal" />
@@ -91,8 +93,10 @@
       </Component>
 
       <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="7B4A2D15-3E64-4F2A-9E3C-0A5D6B7C8E91">
+        <!-- Naming the icon explicitly also gives Windows a changed icon reference on an upgrade, which is
+             what makes the Start menu drop its cached picture instead of showing the old one. -->
         <Shortcut Id="PodGateShortcut" Name="PodGate" Description="Connect your AirPods to this PC"
-                  Target="[INSTALLFOLDER]PodGate.exe" WorkingDirectory="INSTALLFOLDER" />
+                  Target="[INSTALLFOLDER]PodGate.exe" WorkingDirectory="INSTALLFOLDER" Icon="PodGate.ico" />
         <RegistryValue Root="HKCU" Key="Software\PodGate" Name="shortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 

@@ -55,9 +55,10 @@ $wixCommand = Get-Command wix -ErrorAction SilentlyContinue
 $wix = if ($wixCommand) { $wixCommand.Source } else { Join-Path $env:USERPROFILE '.dotnet\tools\wix.exe' }
 if (-not (Test-Path $wix)) { throw 'WiX not found. Install it: dotnet tool install --global wix --version 5.0.2' }
 
+$icon = Join-Path $root 'src\PodGate.App\PodGate.ico'
 $msi = Join-Path $setup "PodGate-$version.msi"
 & $wix build (Join-Path $root 'setup\PodGate.wxs') (Join-Path $setup 'Files.wxs') `
-    -d Version=$version -d PublishDir=$publish `
+    -d "Version=$version" -d "PublishDir=$publish" -d "IconFile=$icon" `
     -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -arch x64 -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'wix build failed' }
 
