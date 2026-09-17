@@ -16,17 +16,17 @@ public sealed record PodStatus
     public bool RightCharging { get; init; }
     public bool CaseCharging { get; init; }
 
-    /// <summary>Best effort: the advertisement's wear bits are undocumented (see the class remarks).</summary>
-    public bool LeftInEar { get; init; }
-    public bool RightInEar { get; init; }
+    /// <summary>
+    /// At least one pod is in an ear. The advertisement says no more than that: measured with both pods in,
+    /// then one taken out and held for a minute, the bit never moved. Which pod is in cannot be known.
+    /// </summary>
+    public bool InEar { get; init; }
 
     public int Rssi { get; init; }
     public DateTimeOffset Seen { get; init; } = DateTimeOffset.Now;
 
     /// <summary>What the tray colours and warns on: the emptier pod, ignoring the case.</summary>
     public int? Lowest => Left is null ? Right : Right is null ? Left : Math.Min(Left.Value, Right.Value);
-
-    public bool AnyInEar => LeftInEar || RightInEar;
 
     /// <summary>
     /// How the tray shows it. Two equal values are one number, because a pair sitting in its case reads the
@@ -73,12 +73,13 @@ public sealed record PodStatus
 ///   byte 0   0x07   type: proximity pairing
 ///   byte 1   0x19   length, 25 bytes follow
 ///   byte 3   model  0x0E AirPods Pro, 0x24 AirPods Pro 2 (USB-C), ...
-///   byte 5   status flags; the high nibble says which pod reported first, so left and right swap with it
+///   byte 5   status flags; the high nibble says which pod reported first, so left and right swap with it,
+///            and the low nibble is absolute: bit 1 is "a pod is in an ear", bit 2 "a pod is in the case"
 ///   byte 6   battery nibbles of the two pods, 0-10 in ten-percent steps, 0xF = not reported
 ///   byte 7   high nibble charging flags, low nibble case battery
 ///
-/// The wear (in-ear) bits in byte 5 are the least certain part: they are inferred, and a pair that never
-/// reports them simply never pauses anything.
+/// The wear bit was found by toggling it on real hardware: a pod out of the case and in the hand clears it,
+/// the same pod in an ear sets it, three times over. It is one bit for the pair, not one per pod.
 /// </summary>
 public static class AppleAdvert
 {
@@ -103,8 +104,6 @@ public static class AppleAdvert
         int? first = Battery(pods >> 4);
         int? second = Battery(pods & 0x0F);
         int charging = caseAndCharge >> 4;
-        bool firstInEar = (status & 0x08) != 0;
-        bool secondInEar = (status & 0x04) != 0;
 
         return new PodStatus
         {
@@ -120,8 +119,7 @@ public static class AppleAdvert
             LeftCharging = (charging & (flipped ? 0b0000_0010 : 0b0000_0001)) != 0,
             RightCharging = (charging & (flipped ? 0b0000_0001 : 0b0000_0010)) != 0,
             CaseCharging = (charging & 0b0000_0100) != 0,
-            LeftInEar = flipped ? firstInEar : secondInEar,
-            RightInEar = flipped ? secondInEar : firstInEar,
+            InEar = (status & 0x02) != 0,
             Rssi = rssi,
         };
     }

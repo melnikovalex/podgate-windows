@@ -56,7 +56,8 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **The case only reports a level while it holds a pod.** With both pods out, the case nibble is `0xF` (not reported) and the case-charging bit is clear even when the case is on a charger. A missing case percentage therefore means "both pods are out", not "the reading was lost".
 - **The charge nibble's bit 2 is the case**, and it sets within a second of plugging the case in and clears again when it is unplugged. Bit 3 was set in every state observed and is not used.
 - **A closed case stops advertising altogether** within seconds, so battery goes unknown while the AirPods are simply put away.
-- **The wear bits are the least certain part** of the layout: a pair that never reports them simply never triggers ear detection.
+- **The wear bit is byte 5, bit 1, and it is one bit for the pair.** Measured by toggling it: a pod out of the case and held in the hand clears it, the same pod in an ear sets it, three times over. With both pods in and one then removed for a minute it never moved, so the advertisement says "some pod is in an ear" and nothing more - which pod cannot be known, and neither can the first pod coming out. Bit 2 of the same nibble is "a pod is in the case", and reading that one as wear makes ear detection fire on the case lid instead of the ear.
+- **Windows reports no battery on the device node for AirPods**, connected or not: `DEVPKEY_Bluetooth_Battery` is empty. The advertisement is the only source, so there is nothing to cross-check a reading against.
 
 ## Antivirus
 

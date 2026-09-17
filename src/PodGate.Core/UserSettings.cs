@@ -17,7 +17,7 @@ public sealed class UserSettings
     /// <summary>Warn at 20 % and again at 5 %.</summary>
     public bool LowBatteryWarnings { get; set; } = true;
 
-    /// <summary>Pause what is playing when a pod comes out, start it again when it goes back in.</summary>
+    /// <summary>Pause what is playing when the AirPods come out of your ears, start it again when one goes back in.</summary>
     public bool EarDetection { get; set; } = true;
 
     /// <summary>Which audio devices each mode switches to. Per user, because default devices are per user.</summary>

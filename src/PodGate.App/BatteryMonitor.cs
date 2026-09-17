@@ -134,13 +134,14 @@ public sealed class BatteryMonitor : IDisposable
     }
 
     /// <summary>
-    /// A pod out of the ear pauses what is playing, but only while the sound is going to the AirPods: taking
-    /// one out while you listen on speakers must not stop anything. Putting it back within a minute starts
-    /// again exactly what PodGate paused.
+    /// Taking the AirPods out of your ears pauses what is playing, but only while the sound is going to them:
+    /// doing it while you listen on speakers must not stop anything. Putting one back within a minute starts
+    /// again exactly what PodGate paused. The advertisement only reports whether *any* pod is in an ear, so
+    /// this fires when the last one comes out, not the first.
     /// </summary>
     private async Task EarDetectionAsync(PodStatus status)
     {
-        bool inEar = status.AnyInEar;
+        bool inEar = status.InEar;
         bool wasInEar = _wasInEar;
         _wasInEar = inEar;
         if (inEar == wasInEar || !UserSettings.Load().EarDetection) return;
