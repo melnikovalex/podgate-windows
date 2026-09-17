@@ -168,7 +168,7 @@ if (action == "--ble-probe")
                 $"{bytes[6] >> 4,2}/{bytes[6] & 0x0F,-2}  " +
                 $"L={Cell(parsed.Left)}{(parsed.LeftCharging ? "+" : " ")} R={Cell(parsed.Right)}{(parsed.RightCharging ? "+" : " ")} " +
                 $"case={Cell(parsed.Case)}{(parsed.CaseCharging ? "+" : " ")} " +
-                $"chargeNibble={bytes[7] >> 4:X1} inEar={(parsed.LeftInEar ? "L" : "-")}{(parsed.RightInEar ? "R" : "-")}");
+                $"chargeNibble={bytes[7] >> 4:X1} inEar={(parsed.InEar ? "yes" : "no ")}");
         }
     };
     probe.Start();
@@ -186,13 +186,15 @@ if (action == "--ble-watch")
     string? secondsArg = args.SkipWhile(a => a != "--ble-watch").Skip(1).FirstOrDefault();
     if (secondsArg is not null && int.TryParse(secondsArg, out int parsed)) seconds = parsed;
 
+    // Exactly what the tray does: the configured pair's model byte, and the same -70 dBm threshold. The
+    // point of this verb is to see what the app would show, neighbours included or excluded for real.
     int? expected = PodGateConfig.ProductId(PodGateConfig.ResolveAddress()) & 0xFF;
-    Console.WriteLine($"  the paired device's model byte is 0x{expected:X2}; other pairs are listed but ignored by the app");
-    using var watcher = new PodGate.Core.Ble.PodWatcher(minimumRssi: -95, log: Console.WriteLine);
+    Console.WriteLine($"  reading model 0x{expected:X2} at the app's own threshold; anything else is ignored");
+    using var watcher = new PodGate.Core.Ble.PodWatcher(log: Console.WriteLine, model: expected);
     watcher.Updated += status => Console.WriteLine(
         $"  {status.Seen:HH:mm:ss} rssi={status.Rssi,4} model=0x{status.Model:X2} {status.ModelName,-38} " +
         $"L={Show(status.Left)}{(status.LeftCharging ? "+" : " ")} R={Show(status.Right)}{(status.RightCharging ? "+" : " ")} " +
-        $"case={Show(status.Case)}{(status.CaseCharging ? "+" : " ")} inEar={(status.LeftInEar ? "L" : "-")}{(status.RightInEar ? "R" : "-")} " +
+        $"case={Show(status.Case)}{(status.CaseCharging ? "+" : " ")} inEar={(status.InEar ? "yes" : "no ")} " +
         $"");
     watcher.Start();
     Console.WriteLine($"  listening for {seconds} s; open the case, put a pod in, take it out...");

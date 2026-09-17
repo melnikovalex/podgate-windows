@@ -118,15 +118,41 @@ public class AppleAdvertTests
     }
 
     [Fact]
-    public void ReadsWearBits()
+    public void ReadsTheWearBit()
     {
-        PodStatus? both = AppleAdvert.Parse(Advert(status: 0x0C));
-        PodStatus? none = AppleAdvert.Parse(Advert(status: 0x00));
+        // Byte 5, bit 1, measured by toggling it: a pod in the hand clears it, the same pod in an ear sets
+        // it. Both of the pair's simultaneous advertisements carry the same value, so it is not positional.
+        PodStatus? inAnEar = AppleAdvert.Parse(Advert(status: 0x03));
+        PodStatus? inTheHand = AppleAdvert.Parse(Advert(status: 0x01));
+        PodStatus? flippedVariant = AppleAdvert.Parse(Advert(status: 0x73));
 
-        Assert.True(both!.LeftInEar);
-        Assert.True(both.RightInEar);
-        Assert.True(both.AnyInEar);
-        Assert.False(none!.AnyInEar);
+        Assert.True(inAnEar!.InEar);
+        Assert.False(inTheHand!.InEar);
+        Assert.True(flippedVariant!.InEar);
+    }
+
+    [Fact]
+    public void DoesNotMistakeTheCaseBitForAnEar()
+    {
+        // Both pods sitting in the case: bit 2 set, bit 1 clear. The old code read bits 0x08 and 0x04 and
+        // so reported "in ear" for a pair in its case, which made the pause feature fire on the case lid.
+        Assert.False(AppleAdvert.Parse(Advert(status: 0x55))!.InEar);
+        Assert.False(AppleAdvert.Parse(Advert(status: 0x35))!.InEar);
+    }
+
+    [Fact]
+    public void NamesTheSideWhenOnlyOnePodReports()
+    {
+        // Measured on a pair with one pod genuinely missing: the absent side is "not reported" (0xF), not
+        // zero, and the flip bit says which side that is. Showing a bare "100%" would hide the loss.
+        PodStatus? status = AppleAdvert.Parse(Advert(status: 0x24, pods: 0xFA, caseAndCharge: 0x94, model: 0x13));
+
+        Assert.Equal("AirPods (3rd generation)", status!.ModelName);
+        Assert.Equal(100, status.Left);
+        Assert.Null(status.Right);
+        Assert.True(status.LeftCharging);
+        Assert.Equal(40, status.Case);
+        Assert.Equal("L 100%\u26A1 \u00B7 Case 40%", status.Describe());
     }
 
     [Theory]
@@ -140,25 +166,25 @@ public class AppleAdvertTests
     }
 
     [Theory]
+    // Real states, as the tray writes them: a bolt marks whatever is charging right now.
+    [InlineData(0x67, 0xB9, "L 60%\u26A1 \u00B7 R 70%\u26A1 \u00B7 Case 90%")]        // both pods in the case
+    [InlineData(0x67, 0xF9, "L 60%\u26A1 \u00B7 R 70%\u26A1 \u00B7 Case 90%\u26A1")]  // ... and the case on a charger
+    [InlineData(0x57, 0xA9, "L 50%\u26A1 \u00B7 R 70% \u00B7 Case 90%")]              // left charging, right in hand
+    [InlineData(0x67, 0x8F, "L 60% \u00B7 R 70%")]                                     // both out, no case reading
+    public void MarksWhatIsCharging(byte pods, byte caseAndCharge, string expected)
+    {
+        Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x11, pods: pods, caseAndCharge: caseAndCharge))!.Describe());
+    }
+
+    [Theory]
     // pods nibbles, case nibble, what the tray shows
-    [InlineData(0x86, 0x04, "L 60% · R 80% · Case 40%")]
+    [InlineData(0x86, 0x04, "L 60% \u00B7 R 80% \u00B7 Case 40%")]
     [InlineData(0x99, 0x0F, "90%")]
-    [InlineData(0xF9, 0x04, "90% · Case 40%")]
+    [InlineData(0xF9, 0x04, "L 90% \u00B7 Case 40%")]   // the right pod reports nothing: say which side is known
     [InlineData(0x00, 0x00, "Battery unknown")]
     public void DescribesTheReadingForTheTray(byte pods, byte caseNibble, string expected)
     {
         Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x20, pods: pods, caseAndCharge: caseNibble))!.Describe());
-    }
-
-    [Theory]
-    // Real states, as the tray writes them: a bolt marks whatever is charging right now.
-    [InlineData(0x67, 0xB9, "L 60%⚡ · R 70%⚡ · Case 90%")]   // both pods in the case
-    [InlineData(0x67, 0xF9, "L 60%⚡ · R 70%⚡ · Case 90%⚡")] // ... and the case on a charger
-    [InlineData(0x57, 0xA9, "L 50%⚡ · R 70% · Case 90%")]         // left charging, right in hand
-    [InlineData(0x67, 0x8F, "L 60% · R 70%")]                                 // both out, no case reading
-    public void MarksWhatIsCharging(byte pods, byte caseAndCharge, string expected)
-    {
-        Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x11, pods: pods, caseAndCharge: caseAndCharge))!.Describe());
     }
 
     [Fact]

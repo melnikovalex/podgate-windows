@@ -63,9 +63,9 @@
             <Rectangle Style="{StaticResource RowSeparator}"/>
             <CheckBox x:Name="EarDetectionBox" Style="{StaticResource RowCheckBox}">
               <StackPanel>
-                <TextBlock Style="{StaticResource RowTitle}" Text="Pause when a pod comes out"/>
+                <TextBlock Style="{StaticResource RowTitle}" Text="Pause when you take them out"/>
                 <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0"
-                           Text="Starts again when you put it back within a minute"/>
+                           Text="Starts again when you put one back within a minute"/>
               </StackPanel>
             </CheckBox>
           </StackPanel>
