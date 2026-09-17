@@ -10,26 +10,39 @@
   but System.Drawing cannot decode them - it throws on any entry above 64 px - so an .ico built that way is
   unreadable to half the tooling that touches it. At this size the extra few hundred KB buy nothing.
 
+  Each size has its own drawing, so they are taken as they are and never scaled: the small ones are hinted
+  by hand and downscaling a big one would undo that. A missing size is an error rather than a silent resize.
+
+  The white mark is the one that goes in: Windows shows a single icon whatever the theme, and the taskbar,
+  Start menu and Installed-apps list are dark by default. On a light background it has little contrast -
+  the artwork carries no plate of its own - which is a deliberate trade, not an oversight.
+
   Run after changing the artwork; PodGate.ico is committed, so a normal build does not need it.
 #>
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
 $root = Split-Path $PSScriptRoot -Parent
-$source = Join-Path $PSScriptRoot 'icons\app\app-dark-512.png'
+$art = Join-Path $PSScriptRoot 'icons\app'
 $target = Join-Path $root 'src\PodGate.App\PodGate.ico'
 
 $sizes = 16, 20, 24, 32, 48, 64, 128, 256
 
-function Get-Scaled($original, $size) {
-    $bitmap = New-Object System.Drawing.Bitmap $size, $size
+# Copied pixel for pixel into a bitmap this code owns, so LockBits below reads a known 32bpp layout.
+function Get-Artwork($size) {
+    $file = Join-Path $art "app-dark-$size.png"
+    if (-not (Test-Path $file)) { throw "no artwork for $size px: $file" }
+    $original = [System.Drawing.Image]::FromFile($file)
+    if ($original.Width -ne $size -or $original.Height -ne $size) {
+        $original.Dispose()
+        throw "app-dark-$size.png is not $size x $size"
+    }
+    $bitmap = New-Object System.Drawing.Bitmap $size, $size, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $g = [System.Drawing.Graphics]::FromImage($bitmap)
-    $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-    $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-    $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.Clear([System.Drawing.Color]::Transparent)
-    $g.DrawImage($original, (New-Object System.Drawing.Rectangle 0, 0, $size, $size))
+    $g.DrawImageUnscaled($original, 0, 0)
     $g.Dispose()
+    $original.Dispose()
     return $bitmap
 }
 
@@ -66,14 +79,12 @@ function Get-DibBytes($bitmap) {
     return $stream.ToArray()
 }
 
-$original = [System.Drawing.Image]::FromFile($source)
 $images = @()
 foreach ($size in $sizes) {
-    $scaled = Get-Scaled $original $size
-    $images += , @{ Size = $size; Bytes = (Get-DibBytes $scaled) }
-    $scaled.Dispose()
+    $artwork = Get-Artwork $size
+    $images += , @{ Size = $size; Bytes = (Get-DibBytes $artwork) }
+    $artwork.Dispose()
 }
-$original.Dispose()
 
 $out = New-Object System.IO.MemoryStream
 $writer = New-Object System.IO.BinaryWriter $out

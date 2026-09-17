@@ -12,7 +12,8 @@
   side clear for the same reason, so the icon sits on the right.
 
   BMP carries no transparency, so everything is composited onto its background here rather than relying on
-  the alpha channel.
+  the alpha channel. The artwork is a bare mark with no plate behind it, so which version goes where is
+  decided by the background: the ink mark on the white areas, the white one on the dark column.
 
   Run it after changing the artwork; the bitmaps are committed, so a normal build does not need them.
 #>
@@ -52,7 +53,7 @@ $bitmap.Dispose()
 
 # --- banner.bmp: white, icon on the right; WixUI writes its heading over the left ------------------
 $bitmap, $g = New-Canvas 493 58 $white
-Add-Art $g 'app\app-dark-512.png' 431 7 44
+Add-Art $g 'app\app-light-512.png' 431 7 44
 $g.Dispose()
 $bitmap.Save((Join-Path $here 'banner.bmp'), [System.Drawing.Imaging.ImageFormat]::Bmp)
 $bitmap.Dispose()
@@ -64,7 +65,7 @@ $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
 $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 $g.Clear([System.Drawing.Color]::Transparent)
-Add-Art $g 'app\app-dark-512.png' 0 0 64
+Add-Art $g 'app\app-light-512.png' 0 0 64
 $g.Dispose()
 $logo.Save((Join-Path $here 'logo.png'), [System.Drawing.Imaging.ImageFormat]::Png)
 $logo.Dispose()
