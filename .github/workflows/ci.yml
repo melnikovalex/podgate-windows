@@ -76,11 +76,17 @@ jobs:
 
       # The release notes are the tag's own message. Generated notes would only list the single squashed
       # commit that main receives per release, which says nothing about what changed.
+      #
+      # The explicit fetch is load-bearing: checkout writes the tag as a lightweight ref, so the annotated
+      # tag object is missing and %(contents) silently falls back to the commit message. The first release
+      # went out with "install the bootstrapper extension in ci" as its description because of this.
       - name: publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          git fetch origin --force --tags
+          if ((git cat-file -t '${{ github.ref_name }}') -ne 'tag') { throw 'not an annotated tag, so there are no release notes' }
           $notes = git tag -l --format='%(contents)' '${{ github.ref_name }}'
           if (-not $notes) { throw 'the tag has no message, so there are no release notes' }
           $notes | Out-File -FilePath notes.md -Encoding utf8
