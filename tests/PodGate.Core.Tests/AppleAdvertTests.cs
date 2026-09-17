@@ -143,7 +143,7 @@ public class AppleAdvertTests
     // pods nibbles, case nibble, what the tray shows
     [InlineData(0x86, 0x04, "L 60% · R 80% · Case 40%")]
     [InlineData(0x99, 0x0F, "90%")]
-    [InlineData(0xF9, 0x04, "90% · Case 40%")]
+    [InlineData(0xF9, 0x04, "L 90% · Case 40%")]   // the right pod reports nothing: say which side is known
     [InlineData(0x00, 0x00, "Battery unknown")]
     public void DescribesTheReadingForTheTray(byte pods, byte caseNibble, string expected)
     {
@@ -159,6 +159,21 @@ public class AppleAdvertTests
     public void MarksWhatIsCharging(byte pods, byte caseAndCharge, string expected)
     {
         Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x11, pods: pods, caseAndCharge: caseAndCharge))!.Describe());
+    }
+
+    [Fact]
+    public void NamesTheSideWhenOnlyOnePodReports()
+    {
+        // Measured on a pair with one pod genuinely missing: the absent side is "not reported" (0xF), not
+        // zero, and the flip bit says which side that is. Showing a bare "100%" would hide the loss.
+        PodStatus? status = AppleAdvert.Parse(Advert(status: 0x24, pods: 0xFA, caseAndCharge: 0x94, model: 0x13));
+
+        Assert.Equal("AirPods (3rd generation)", status!.ModelName);
+        Assert.Equal(100, status.Left);
+        Assert.Null(status.Right);
+        Assert.True(status.LeftCharging);
+        Assert.Equal(40, status.Case);
+        Assert.Equal("L 100%\u26A1 \u00B7 Case 40%", status.Describe());
     }
 
     [Fact]

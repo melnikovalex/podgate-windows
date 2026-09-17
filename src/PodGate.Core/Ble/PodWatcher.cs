@@ -4,14 +4,15 @@ using Windows.Storage.Streams;
 namespace PodGate.Core.Ble;
 
 /// <summary>
-/// Listens for the AirPods' battery advertisement. The advertising address rotates every few minutes and
-/// carries nothing that ties it to a paired device, so the pair is picked by model and signal strength:
-/// the strongest advertiser of that model wins. Another pair of the same model in the same room can be
-/// read instead, which is why the threshold and the off switch exist.
+/// Listens for the AirPods' battery advertisement and publishes the readings of one pair. Which pair that
+/// is cannot be settled by address - see <see cref="AdvertiserPicker"/> - so the model byte filters out
+/// other kinds of AirPods and the picker keeps a neighbour's identical pair from taking the reading over.
 /// </summary>
 public sealed class PodWatcher : IDisposable
 {
     private readonly BluetoothLEAdvertisementWatcher _watcher = new() { ScanningMode = BluetoothLEScanningMode.Passive };
+    private readonly AdvertiserPicker _picker = new();
+    private readonly Lock _gate = new();
     private readonly int _minimumRssi;
     private readonly Action<string>? _log;
     private int? _model;
@@ -41,7 +42,11 @@ public sealed class PodWatcher : IDisposable
     {
         if (_model == model) return;
         _model = model;
-        _best = null;
+        lock (_gate)
+        {
+            _picker.Reset();
+            _best = null;
+        }
         Lost?.Invoke();
     }
 
@@ -72,8 +77,11 @@ public sealed class PodWatcher : IDisposable
     /// <summary>Drops a reading that is older than <paramref name="age"/> and reports it as lost.</summary>
     public void Expire(TimeSpan age)
     {
-        if (_best is null || DateTimeOffset.Now - _best.Seen <= age) return;
-        _best = null;
+        lock (_gate)
+        {
+            if (_best is null || DateTimeOffset.Now - _best.Seen <= age) return;
+            _best = null;
+        }
         Lost?.Invoke();
     }
 
@@ -90,18 +98,15 @@ public sealed class PodWatcher : IDisposable
 
             PodStatus? status = AppleAdvert.Parse(payload, args.RawSignalStrengthInDBm);
             if (status is null) continue;
-            if (_model is not null && status.Model != _model) continue;   // someone else's AirPods
+            if (_model is not null && status.Model != _model) continue;   // a different model entirely
 
-            // Strongest wins, but a newer reading from the same pair always replaces the old one, and a
-            // pair that has gone quiet for half a minute loses its claim to a closer one.
-            if (_best is not null && _best.Model != status.Model && _best.Rssi > status.Rssi &&
-                DateTimeOffset.Now - _best.Seen < TimeSpan.FromSeconds(30))
+            bool mine;
+            lock (_gate)
             {
-                continue;
+                mine = _picker.Accepts(args.BluetoothAddress, status.Rssi, DateTimeOffset.Now);
+                if (mine) _best = status;
             }
-
-            _best = status;
-            Updated?.Invoke(status);
+            if (mine) Updated?.Invoke(status);
         }
     }
 

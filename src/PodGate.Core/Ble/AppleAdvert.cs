@@ -29,9 +29,10 @@ public sealed record PodStatus
     public bool AnyInEar => LeftInEar || RightInEar;
 
     /// <summary>
-    /// How the tray shows it. A pair in its case usually reports one value for both pods, so "L 90% · R —"
-    /// would read like a missing pod: one known value is shown as one number, and the device it belongs to
-    /// is already named in the row above.
+    /// How the tray shows it. Two equal values are one number, because a pair sitting in its case reads the
+    /// same on both sides and "L 90% · R 90%" is just noise. A side is named whenever the other one says
+    /// nothing, which is the honest reading of a pod that is missing, lost or flat - measured on a pair with
+    /// one pod gone, where the advertisement reports the absent side as "not reported" rather than zero.
     /// </summary>
     public string Describe()
     {
@@ -40,8 +41,9 @@ public sealed record PodStatus
         string pods = (Left, Right) switch
         {
             ({ } left, { } right) when left != right => $"L {Level(left, LeftCharging)} · R {Level(right, RightCharging)}",
-            ({ } left, _) => Level(left, LeftCharging || RightCharging),
-            (_, { } right) => Level(right, LeftCharging || RightCharging),
+            ({ } left, { } right) => Level(left, LeftCharging || RightCharging),
+            ({ } left, null) => $"L {Level(left, LeftCharging)}",
+            (null, { } right) => $"R {Level(right, RightCharging)}",
             _ => "",
         };
         string caseText = Case is null ? "" : $"Case {Level(Case.Value, CaseCharging)}";
