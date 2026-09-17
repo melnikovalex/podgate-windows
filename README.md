@@ -6,7 +6,9 @@ Windows reconnects paired Bluetooth audio devices at boot, often before you log 
 
 PodGate keeps the AirPods **blocked at rest** by disabling their Bluetooth device node, which survives reboots, sleep and Fast Startup, and enables it again when you connect. Other Bluetooth devices are not touched.
 
-> Status: early (0.x). Developed and tested with AirPods Pro 2 (USB-C) on Windows 11. Other AirPods models and Bluetooth adapters may behave differently; reports are welcome.
+> Status: early (0.x). Connecting, blocking and audio switching are developed and tested with AirPods Pro 2 (USB-C) on Windows 11.
+> Battery reading is additionally verified against AirPods (2nd generation) and AirPods (3rd generation), which broadcast the same way.
+> Other AirPods models and Bluetooth adapters may behave differently; reports are welcome.
 
 ## Install
 
@@ -34,12 +36,19 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 
 PodGate reads the battery from the AirPods' own Bluetooth broadcast, so it works even when they are connected to your phone instead of this PC:
 
-- **Tray menu:** `L 80% · R 75% · Case 60%`, one value when both pods agree, `Battery unknown` when nothing has been heard.
-- **Warnings** at 20% and again at 5%, switched off in the tray menu.
+- **Tray menu:** `L 80% · R 75%⚡ · Case 60%`, one value when both pods agree, a bolt on whatever is charging, and
+  `Battery unknown` when nothing has been heard. The case only reports a level while it holds a pod.
+- **Warnings** at 20% and again at 5%, switched off in Settings.
 - **Progress popup:** a battery glyph, grey above 20%, yellow at 20%, red at 5%. The percentages appear when the pointer is over the card.
-- **Ear detection:** taking a pod out pauses what is playing, putting it back within a minute starts it again, and only while the sound is going to the AirPods. Switched off in the tray menu.
+- **Ear detection:** taking the AirPods out of your ears pauses what is playing, putting one back within a minute starts it
+  again, and only while the sound is going to them. The broadcast reports whether *any* pod is in an ear and nothing more,
+  so this fires when the last pod comes out, not the first. Switched off in Settings.
 
-The broadcast carries no serial number, so PodGate reads the strongest pair in range: another pair of the same model very close by can be read instead of yours.
+The broadcast comes from a rotating random address and Windows keeps no LE identity key for AirPods, so there is no way to
+match it to your pair by Bluetooth address. PodGate follows one advertiser by signal strength instead, and only hands over
+to another that comes within a few dB of it, which keeps a neighbour's identical AirPods out. When your pair goes quiet the
+battery goes unknown rather than becoming someone else's. Another pair of the same model held right next to yours can still
+be read instead.
 
 ## Settings
 
