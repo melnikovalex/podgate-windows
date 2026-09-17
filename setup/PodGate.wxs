@@ -19,7 +19,8 @@
            UpgradeCode="9E0C5F8A-4C8B-4E0B-9F2E-9E1E2B3C4D50">
 
     <SummaryInformation Description="PodGate: connect your AirPods when you ask, not when Windows feels like it" />
-    <MediaTemplate EmbedCab="yes" />
+    <!-- LZX beats the default MSZIP by a wide margin on a payload that is mostly .NET assemblies. -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <!-- Same UpgradeCode, higher version: Windows replaces the old one and keeps the settings. -->
     <!-- AllowSameVersionUpgrades keeps a rebuild of the same version from registering as a second product,
