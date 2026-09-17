@@ -76,6 +76,8 @@ internal static class Program
 
         setup.SetTestPassedForSnapshot(true);
         setup.ShowPageForSnapshot(SetupWindow.Page.Done);
+        setup.DoneToggleRow.ShowSample("idle");
+        setup.DoneMusicRow.ShowSample("idle");
         Save(setup, output, "5-done");
         setup.Close();
 

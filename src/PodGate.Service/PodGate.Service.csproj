@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- WinExe, not Exe: the uninstaller runs this binary directly to restore stock Bluetooth, and a
+         console subsystem executable flashes a black window in the middle of an install. It still writes
+         to a console when a person starts it from one; see AttachConsole in Program.cs. -->
+    <OutputType>WinExe</OutputType>
     <RootNamespace>PodGate.Service</RootNamespace>
     <AssemblyName>PodGate.Service</AssemblyName>
     <UserSecretsId>podgate-service</UserSecretsId>

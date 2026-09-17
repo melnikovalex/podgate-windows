@@ -29,6 +29,7 @@ public partial class SetupWindow : DarkWindow
 
     private readonly Func<Func<Task>, Task<bool>> _exclusive;
     private readonly List<Page> _flow;
+    private readonly HotkeyManager _hotkeys;
     private readonly List<TestStepRow> _steps = [];
     private int _index;
     private DeviceChoice? _selected;
@@ -45,12 +46,15 @@ public partial class SetupWindow : DarkWindow
     {
         InitializeComponent();
         _exclusive = exclusive;
+        _hotkeys = hotkeys;
         _flow = changeDevice
             ? [Page.Choose, Page.Test, Page.Done]
             : [Page.Welcome, Page.Choose, Page.Test, Page.Shortcuts, Page.Done];
 
         SetupToggleRow.Attach(hotkeys);
         SetupMusicRow.Attach(hotkeys);
+        DoneToggleRow.Attach(hotkeys);
+        DoneMusicRow.Attach(hotkeys);
 
         foreach (string step in new[] { "Disconnect from this PC", "Connect", "Switch sound to AirPods", "Switch call microphone", "Play a short sound" })
         {
@@ -61,7 +65,9 @@ public partial class SetupWindow : DarkWindow
         }
 
         BackButton.Click += (_, _) => _secondary?.Invoke();
-        SkipButton.Click += (_, _) => Go(_flow.IndexOf(Page.Done));
+        // Skips the test, not the rest of setup: jumping to the last page used to step over the
+        // shortcuts page entirely, which is why the progress bar went from 2 straight to 4.
+        SkipButton.Click += (_, _) => Go(_index + 1);
         NextButton.Click += async (_, _) => await NextAsync();
         ShowOthersLink.Click += (_, _) =>
         {
@@ -139,7 +145,7 @@ public partial class SetupWindow : DarkWindow
         }
         StepText.Text = $"Step {step} of {total}";
 
-        BackButton.Visibility = _index > 0 && page != Page.Done ? Visibility.Visible : Visibility.Collapsed;
+        BackButton.Visibility = _index > 0 ? Visibility.Visible : Visibility.Collapsed;
         BackButton.IsEnabled = true;
         BackButton.Content = "Back";
         _secondary = () => Go(_index - 1);
@@ -538,7 +544,6 @@ public partial class SetupWindow : DarkWindow
     private void ShowDone()
     {
         DonePage.Visibility = Visibility.Visible;
-        BackButton.Visibility = Visibility.Collapsed;
         FooterNote.Text = "";
         SetNextText("Finish");
 
@@ -557,8 +562,8 @@ public partial class SetupWindow : DarkWindow
         DoneDeviceState.Text = _testPassed ? "Connected" : "Disconnected";
 
         HotkeyConfig keys = settings.EffectiveHotkeys(PodGateConfig.Load());
-        DoneToggleKeys.ItemsSource = HotkeyText.Caps(CurrentBinding(HotkeyAction.Toggle, keys.Toggle));
-        DoneMusicKeys.ItemsSource = HotkeyText.Caps(CurrentBinding(HotkeyAction.ConnectMusic, keys.ConnectMusic));
+        DoneToggleRow.Attach(_hotkeys);
+        DoneMusicRow.Attach(_hotkeys);
     }
 
     private string CurrentBinding(HotkeyAction action, string fallback) =>
