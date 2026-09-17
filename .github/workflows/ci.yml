@@ -26,11 +26,13 @@ jobs:
       - name: test
         run: dotnet test tests/PodGate.Core.Tests/PodGate.Core.Tests.csproj -c Release --no-build
 
+      # Keep in step with the list in build.ps1's header; a missing extension only shows up here.
       - name: install wix
         run: |
           dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.Util.wixext/5.0.2
           wix extension add -g WixToolset.UI.wixext/5.0.2
+          wix extension add -g WixToolset.BootstrapperApplications.wixext/5.0.2
 
       - name: build installer
         run: powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
