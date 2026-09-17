@@ -25,12 +25,15 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 | `Ctrl+Alt+Shift+A` | Connect or disconnect, whichever applies |
 | `Ctrl+Alt+Shift+S` | Connect for music only: no microphone, so audio stays in full A2DP quality |
 | Tray icon (left or right click) | Menu with the same actions and their hotkeys |
+| Tray icon (double click) | Opens Settings |
 
 - **Connect** makes the AirPods the default output and the default communications microphone, so calls use them while music stays in high quality. It gives up after about 12 s if they don't answer (in the case, or out of range) and blocks them again.
 - **Disconnect** pauses playback if it was going to the AirPods, hands audio back to the previous device, and blocks the AirPods so your phone can take them.
 - A small card at the bottom of the screen shows progress and disappears by itself. Its close button only hides it; the action continues.
 - **Shutdown and restart** release the AirPods automatically.
-- Tray icon: white = connected, purple = connected for music, grey = disconnected.
+- Tray icon: white = connected, purple = connected for music, grey = disconnected. It follows the taskbar theme.
+- **Ask to connect when nearby** (off by default) offers a click-to-connect notification when the AirPods
+  come within about an arm's length, for when reaching for the shortcut is one step too many.
 
 ## Battery and ear detection
 

@@ -17,6 +17,9 @@ public sealed class UserSettings
     /// <summary>Warn at 20 % and again at 5 %.</summary>
     public bool LowBatteryWarnings { get; set; } = true;
 
+    /// <summary>Offer to connect when the AirPods come into range, instead of waiting for the shortcut.</summary>
+    public bool AskWhenNearby { get; set; }
+
     /// <summary>Pause what is playing when the AirPods come out of your ears, start it again when one goes back in.</summary>
     public bool EarDetection { get; set; } = true;
 

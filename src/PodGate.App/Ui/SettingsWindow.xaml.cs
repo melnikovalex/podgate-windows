@@ -31,6 +31,7 @@ public partial class SettingsWindow : DarkWindow
         StartWithWindowsBox.Click += (_, _) => Save(settings => settings.StartWithWindows = StartWithWindowsBox.IsChecked == true);
         LowBatteryBox.Click += (_, _) => Save(settings => settings.LowBatteryWarnings = LowBatteryBox.IsChecked == true);
         EarDetectionBox.Click += (_, _) => Save(settings => settings.EarDetection = EarDetectionBox.IsChecked == true);
+        AskWhenNearbyBox.Click += (_, _) => Save(settings => settings.AskWhenNearby = AskWhenNearbyBox.IsChecked == true);
         ConnectOnStartupBox.Click += async (_, _) =>
         {
             if (_loading) return;
@@ -65,16 +66,11 @@ public partial class SettingsWindow : DarkWindow
     internal HotkeyRow[] Rows => [ToggleRow, MusicRow, ConnectRow, ReleaseRow];
 
     /// <summary>
-    /// Shown when the window opened because PodGate was started while it already ran. The window grows by
-    /// the hint's height: taking the space out of the settings above would squeeze a group off the bottom.
+    /// Shown when the window opened because PodGate was started again while it was already running - the
+    /// one moment where someone needs telling that it lives in the tray. It sits beside the title, so the
+    /// window keeps its size and nothing below has to move.
     /// </summary>
-    public void ShowAlreadyRunningHint()
-    {
-        if (AlreadyRunningHint.Visibility == System.Windows.Visibility.Visible) return;
-        AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
-        AlreadyRunningHint.Measure(new System.Windows.Size(Width - 64, double.PositiveInfinity));
-        Height += AlreadyRunningHint.DesiredSize.Height + 12;   // 12 is the hint's top margin
-    }
+    public void ShowAlreadyRunningHint() => AlreadyRunningHint.Visibility = System.Windows.Visibility.Visible;
 
     public void Reload()
     {
@@ -84,24 +80,31 @@ public partial class SettingsWindow : DarkWindow
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;
         LowBatteryBox.IsChecked = settings.LowBatteryWarnings;
         EarDetectionBox.IsChecked = settings.EarDetection;
+        AskWhenNearbyBox.IsChecked = settings.AskWhenNearby;
         ConnectOnStartupBox.IsChecked = config.ConnectOnStartup;
 
         try
         {
             QuickState state = QuickState.Read(config.Address);
             DeviceName.Text = state.Name ?? config.DeviceName;
-            string address = string.Join(":", Enumerable.Range(0, 6).Select(i => state.Address.Substring(i * 2, 2)));
-            DeviceState.Text = $"{address} · {(state.Connected ? "Connected" : "Disconnected")}";
+            SetState(state.Connected ? "Connected" : "Disconnected", state.Connected);
             DeviceGlyph.Foreground = (System.Windows.Media.Brush)FindResource(state.Connected ? "PodOn" : "PodOff");
             DeviceBattery.Text = _battery?.Invoke() ?? "";
         }
         catch (Exception ex)
         {
             DeviceName.Text = "No AirPods chosen";
-            DeviceState.Text = "Choose the pair PodGate should manage";
+            SetState("Choose the pair PodGate should manage", connected: false);
             AppLog.Write($"settings: {ex.Message}");
         }
         _loading = false;
+    }
+
+    /// <summary>Connected is the one state worth colouring; anything else is ordinary secondary text.</summary>
+    private void SetState(string text, bool connected)
+    {
+        DeviceState.Text = text;
+        DeviceState.Foreground = (System.Windows.Media.Brush)FindResource(connected ? "Green" : "Label2");
     }
 
     private void ShowAudio(AudioWindow.Mode mode)
@@ -118,9 +121,9 @@ public partial class SettingsWindow : DarkWindow
     }
 
     /// <summary>For the UI snapshot tool.</summary>
-    internal void ShowDeviceForSnapshot(string name, string subtitle)
+    internal void ShowDeviceForSnapshot(string name, string subtitle, bool connected = false)
     {
         DeviceName.Text = name;
-        DeviceState.Text = subtitle;
+        SetState(subtitle, connected);
     }
 }

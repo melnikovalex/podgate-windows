@@ -86,7 +86,7 @@ internal static class Program
 
         var settings = new SettingsWindow(hotkeys, () => "L 60%⚡ · R 70%⚡ · Case 90%");
         Show(settings);
-        settings.ShowDeviceForSnapshot("AirPods Pro", "AA:BB:CC:DD:EE:01 · Disconnected");
+        settings.ShowDeviceForSnapshot("AirPods Pro", "Connected", connected: true);
         settings.Rows[0].ShowSample("works");
         settings.Rows[1].ShowSample("saved");
         settings.Rows[2].ShowSample("idle");

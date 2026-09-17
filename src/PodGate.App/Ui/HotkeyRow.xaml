@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:PodGate.App.Ui"
              Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent">
-  <Grid x:Name="Root" Margin="16,14">
+  <Grid x:Name="Root" Margin="16,11">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -29,7 +29,7 @@
     </StackPanel>
 
     <!-- Keys and links -->
-    <Grid x:Name="Controls" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0">
+    <Grid x:Name="Controls" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,9,0,0">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>

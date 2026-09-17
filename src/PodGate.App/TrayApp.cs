@@ -26,6 +26,17 @@ public sealed class TrayApp : IDisposable
     private readonly BatteryMonitor _battery;
     private readonly SemaphoreSlim _busy = new(1, 1);
 
+    /// <summary>True while the balloon on screen is the offer to connect nearby AirPods.</summary>
+    private bool _balloonConnects;
+
+    /// <summary>
+    /// Holds a left click back long enough to see whether a second one follows. Without it a double click
+    /// never reaches us: the first click would open the menu, the menu would take the mouse, and the second
+    /// click would only dismiss it. The wait is Windows' own double-click time, so it matches every other
+    /// tray icon on the machine.
+    /// </summary>
+    private readonly Timer _clickTimer = new() { Interval = Math.Max(SystemInformation.DoubleClickTime, 200) };
+
     private HudWindow? _hud;
     private SetupWindow? _setup;
     private SettingsWindow? _settings;
@@ -43,13 +54,25 @@ public sealed class TrayApp : IDisposable
         _icon.ContextMenuStrip = BuildMenu();
         // Left click opens the same menu as right click; nothing is triggered by a click on the icon itself,
         // so a stray click can never connect or disconnect. WinForms only wires the menu to the right button.
+        // Double click opens Settings, which is why the menu waits to see if a second click is coming.
+        _clickTimer.Tick += (_, _) =>
+        {
+            _clickTimer.Stop();
+            ShowMenu();
+        };
+
         _icon.MouseClick += (_, e) =>
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                typeof(NotifyIcon).GetMethod("ShowContextMenu", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                    ?.Invoke(_icon, null);
-            }
+            if (e.Button != MouseButtons.Left) return;
+            _clickTimer.Stop();
+            _clickTimer.Start();
+        };
+
+        _icon.MouseDoubleClick += (_, e) =>
+        {
+            if (e.Button != MouseButtons.Left) return;
+            _clickTimer.Stop();
+            OpenSettings();
         };
 
         IReadOnlyList<string> failed = _hotkeys.RegisterAll();
@@ -73,7 +96,28 @@ public sealed class TrayApp : IDisposable
             old.Dispose();
         };
 
-        _battery = new BatteryMonitor(ListeningOnPods, (title, text) => _icon.ShowBalloonTip(6000, title, text, ToolTipIcon.Info));
+        _battery = new BatteryMonitor(ListeningOnPods, IsConnected, (title, text) =>
+        {
+            _balloonConnects = false;
+            _icon.ShowBalloonTip(6000, title, text, ToolTipIcon.Info);
+        });
+
+        // Only the "they are nearby" balloon acts on a click; every other one is just information, so the
+        // flag is cleared whenever a different balloon is raised or this one goes away unclicked.
+        _battery.ArrivedNearby += () => Application.Current.Dispatcher.Invoke(() =>
+        {
+            _balloonConnects = true;
+            _icon.ShowBalloonTip(8000, $"{DeviceLabel()} are nearby", "Click here to connect them to this PC.", ToolTipIcon.Info);
+        });
+
+        _icon.BalloonTipClicked += (_, _) =>
+        {
+            if (!_balloonConnects) return;
+            _balloonConnects = false;
+            _ = ConnectAsync();
+        };
+
+        _icon.BalloonTipClosed += (_, _) => _balloonConnects = false;
         _battery.Changed += status => Application.Current.Dispatcher.Invoke(() =>
         {
             string text = BatteryMonitor.MenuText(status);
@@ -184,6 +228,12 @@ public sealed class TrayApp : IDisposable
     }
 
     /// <param name="alreadyRunning">Opened because PodGate was started a second time: say where it lives.</param>
+    private static void ShowMenuOn(NotifyIcon icon) =>
+        typeof(NotifyIcon).GetMethod("ShowContextMenu", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?.Invoke(icon, null);
+
+    private void ShowMenu() => ShowMenuOn(_icon);
+
     public void OpenSettings(bool alreadyRunning = false)
     {
         if (_setup is not null)
@@ -281,9 +331,23 @@ public sealed class TrayApp : IDisposable
         }
     }
 
+    /// <summary>Whether the AirPods are on this PC right now; unknown counts as not connected.</summary>
+    private static bool IsConnected()
+    {
+        try
+        {
+            return QuickState.Read(PodGateConfig.Load().Address).Connected;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     private void ShowServiceProblem(string? error)
     {
         AppLog.Write($"service unavailable: {error}");
+        _balloonConnects = false;
         _icon.ShowBalloonTip(5000, "PodGate", error ?? "The PodGate service is not running.", ToolTipIcon.Warning);
     }
 
@@ -337,6 +401,7 @@ public sealed class TrayApp : IDisposable
 
     public void Dispose()
     {
+        _clickTimer.Dispose();
         _battery.Dispose();
         _stateTimer.Stop();
         _stateTimer.Dispose();
