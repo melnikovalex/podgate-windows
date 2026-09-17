@@ -37,10 +37,15 @@ public sealed class AdvertiserPicker
     public ulong Chosen => _chosen;
 
     /// <summary>True when this advertisement should be published as the pair's battery.</summary>
-    public bool Accepts(ulong address, int rssi, DateTimeOffset now)
+    /// <param name="fingerprint">
+    /// What this advertiser is reporting, so the two pods of one pair can be told from two separate pairs:
+    /// both pods broadcast the same battery values, a stranger's pair almost never does.
+    /// </param>
+    public bool Accepts(ulong address, int rssi, DateTimeOffset now, string fingerprint = "")
     {
         if (!_heard.TryGetValue(address, out Smoothed? source)) _heard[address] = source = new Smoothed(rssi);
 
+        source.Fingerprint = fingerprint;
         source.Add(rssi);
         source.Heard = now;
 
@@ -62,6 +67,18 @@ public sealed class AdvertiserPicker
         return true;
     }
 
+    /// <summary>
+    /// How many different pairs are currently this close. One pair shows up as two advertisers - one per
+    /// pod - reporting the same battery, so they count once. Anything above 1 means the room is crowded and
+    /// there is no telling whose AirPods just turned up.
+    /// </summary>
+    public int PairsNearby(int minimumRssi, DateTimeOffset now) =>
+        _heard.Values
+            .Where(source => now - source.Heard <= Forget && source.Rssi >= minimumRssi)
+            .Select(source => source.Fingerprint)
+            .Distinct()
+            .Count();
+
     /// <summary>Forgets everything, for when the managed device changes.</summary>
     public void Reset()
     {
@@ -79,6 +96,7 @@ public sealed class AdvertiserPicker
     {
         public double Rssi { get; private set; } = rssi;
         public DateTimeOffset Heard { get; set; }
+        public string Fingerprint { get; set; } = "";
 
         public void Add(int reading) => Rssi = (Rssi * 2 + reading) / 3;
     }

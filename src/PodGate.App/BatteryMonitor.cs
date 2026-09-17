@@ -22,7 +22,13 @@ public sealed class BatteryMonitor : IDisposable
     private const int NearbyRssi = -55;
 
     /// <summary>Offer once, then leave it alone: a pair on the desk advertises every couple of seconds.</summary>
-    private static readonly TimeSpan AskAgainAfter = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan AskAgainAfter = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// How long to stay quiet after an offer nobody acted on. Ignoring it is an answer: on a train the
+    /// AirPods come and go for an hour, and asking again every quarter of an hour would be a nuisance.
+    /// </summary>
+    private static readonly TimeSpan AskAgainAfterIgnored = TimeSpan.FromHours(4);
 
     /// <summary>
     /// Silence for this long counts as the AirPods having gone away, so opening the case again is a fresh
@@ -44,6 +50,7 @@ public sealed class BatteryMonitor : IDisposable
     private bool _wasNearby;
     private DateTimeOffset _heard = DateTimeOffset.MinValue;
     private DateTimeOffset _asked = DateTimeOffset.MinValue;
+    private TimeSpan _quietFor = AskAgainAfter;
     private bool _wasInEar;
     private IReadOnlyList<string> _paused = [];
     private DateTimeOffset _pausedAt;
@@ -76,6 +83,12 @@ public sealed class BatteryMonitor : IDisposable
 
     /// <summary>The AirPods just turned up within reach and are not connected here. Offer to connect them.</summary>
     public event Action? ArrivedNearby;
+
+    /// <summary>
+    /// Called when an offer was accepted. Until then every further offer is held back for hours, because an
+    /// offer that goes unanswered is a no; taking one up means the next one is welcome again.
+    /// </summary>
+    public void OfferAccepted() => _quietFor = AskAgainAfter;
 
     public PodStatus? Current => _watcher.Current;
 
@@ -154,11 +167,16 @@ public sealed class BatteryMonitor : IDisposable
         _wasNearby = nearby;
 
         if (!arrived && !putIn) return;
-        if (DateTimeOffset.Now - _asked < AskAgainAfter) return;
+        if (DateTimeOffset.Now - _asked < _quietFor) return;
         if (!UserSettings.Load().AskWhenNearby) return;
         if (_connected()) return;
 
+        // In a crowded room there is no telling whose AirPods just arrived, and offering to connect
+        // someone else's would be worse than staying quiet.
+        if (_watcher.PairsNearby(NearbyRssi) > 1) return;
+
         _asked = DateTimeOffset.Now;
+        _quietFor = AskAgainAfterIgnored;   // until the offer is taken up, assume the answer was no
         ArrivedNearby?.Invoke();
     }
 

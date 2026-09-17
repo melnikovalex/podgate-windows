@@ -76,6 +76,42 @@ public class AdvertiserPickerTests
     }
 
     [Fact]
+    public void CountsTheTwoPodsOfOnePairAsOnePair()
+    {
+        // Both pods broadcast the same battery values, from two addresses. Counting advertisers would say
+        // "two pairs are here" for a single pair on the desk, and the offer to connect would never appear.
+        var picker = new AdvertiserPicker();
+
+        picker.Accepts(Mine, -26, Start, "100/90/90");
+        picker.Accepts(MyOtherPod, -28, Start, "100/90/90");
+
+        Assert.Equal(1, picker.PairsNearby(-55, Start));
+    }
+
+    [Fact]
+    public void CountsTwoPairsWhenTheRoomIsCrowded()
+    {
+        var picker = new AdvertiserPicker();
+
+        picker.Accepts(Mine, -26, Start, "100/90/90");
+        picker.Accepts(Neighbour, -30, Start, "40/40/-");
+
+        Assert.Equal(2, picker.PairsNearby(-55, Start));
+    }
+
+    [Fact]
+    public void IgnoresPairsThatAreFarAwayOrLongGone()
+    {
+        var picker = new AdvertiserPicker();
+
+        picker.Accepts(Mine, -26, Start, "100/90/90");
+        picker.Accepts(Neighbour, -80, Start, "40/40/-");          // in the room, not within reach
+
+        Assert.Equal(1, picker.PairsNearby(-55, Start));
+        Assert.Equal(0, picker.PairsNearby(-55, Start.AddMinutes(2)));   // nothing heard since
+    }
+
+    [Fact]
     public void StartsOverWhenTheManagedDeviceChanges()
     {
         var picker = new AdvertiserPicker();

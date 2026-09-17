@@ -32,8 +32,10 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 - A small card at the bottom of the screen shows progress and disappears by itself. Its close button only hides it; the action continues.
 - **Shutdown and restart** release the AirPods automatically.
 - Tray icon: white = connected, purple = connected for music, grey = disconnected. It follows the taskbar theme.
-- **Ask to connect when nearby** (off by default) offers a click-to-connect notification when the AirPods
-  come within about an arm's length, for when reaching for the shortcut is one step too many.
+- **Ask to connect when nearby** offers a click-to-connect notification when the AirPods come within about
+  an arm's length or go into an ear. It stays quiet in a crowded room - if more than one pair is that
+  close there is no telling whose just arrived - asks at most once every 15 minutes, and if an offer
+  goes unanswered it waits four hours before the next one. Switched off in Settings.
 
 ## Battery and ear detection
 

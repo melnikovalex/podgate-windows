@@ -85,6 +85,15 @@ public sealed class PodWatcher : IDisposable
         Lost?.Invoke();
     }
 
+    /// <summary>How many distinct pairs are within <paramref name="minimumRssi"/> right now.</summary>
+    public int PairsNearby(int minimumRssi)
+    {
+        lock (_gate) return _picker.PairsNearby(minimumRssi, DateTimeOffset.Now);
+    }
+
+    /// <summary>The two pods of one pair report the same levels, which is what makes this identify a pair.</summary>
+    private static string Fingerprint(PodStatus status) => $"{status.Left}/{status.Right}/{status.Case}";
+
     private void OnReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
     {
         if (args.RawSignalStrengthInDBm < _minimumRssi) return;
@@ -103,7 +112,7 @@ public sealed class PodWatcher : IDisposable
             bool mine;
             lock (_gate)
             {
-                mine = _picker.Accepts(args.BluetoothAddress, status.Rssi, DateTimeOffset.Now);
+                mine = _picker.Accepts(args.BluetoothAddress, status.Rssi, DateTimeOffset.Now, Fingerprint(status));
                 if (mine) _best = status;
             }
             if (mine) Updated?.Invoke(status);

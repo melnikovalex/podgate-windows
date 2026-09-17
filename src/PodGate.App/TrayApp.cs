@@ -123,6 +123,7 @@ public sealed class TrayApp : IDisposable
         {
             if (!_balloonConnects) return;
             _balloonConnects = false;
+            _battery.OfferAccepted();
             _ = ConnectAsync();
         };
 
