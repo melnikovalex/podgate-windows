@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PodGate setup.exe: a thin wrapper around the MSI, built by build.ps1 after it.
+
+  It exists for one reason: Explorer draws every .msi with the Windows Installer file-type icon (the red
+  disc), which comes from msiexec.exe and cannot be set per package. An .exe carries its own icon, so this
+  is the download that looks like PodGate. It also shows the licence once and runs the MSI silently, which
+  is why the MSI's own WixUI never appears here.
+
+  The MSI stays the real installer and keeps shipping: Windows Installer does the work either way, and IT
+  deployment wants the .msi, not a wrapper.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+
+  <Bundle Name="PodGate" Manufacturer="PodGate" Version="$(Version)"
+          UpgradeCode="3B7A1C62-5D94-4F8E-A1B3-6C2D9E4F70A8"
+          IconSourceFile="$(IconFile)"
+          AboutUrl="https://github.com/melnikovalex/podgate-windows"
+          DisableModify="yes"
+          Compressed="yes">
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication Theme="rtfLicense" LicenseFile="$(LicenseFile)" LogoFile="$(LogoFile)"
+                                              SuppressOptionsUI="yes" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <MsiPackage SourceFile="$(MsiFile)" Vital="yes">
+        <!--
+          One product, one row in Installed apps. Burn registers the bundle there, and a package inside it
+          registers itself as well unless told not to, which is how an orphaned "PodGate 0.7.12" row was
+          left behind when the MSI was removed on its own: two registrations, only one of them uninstalled.
+
+          ARPSYSTEMCOMPONENT hides the inner MSI, so the bundle is what people see and uninstall. That still
+          removes the MSI, which still runs RestoreStock, so the AirPods are re-enabled either way.
+          Installing the .msi directly - what IT deployment does - sets no such property and registers
+          normally, which is the behaviour that belongs to a bare MSI.
+        -->
+        <MsiProperty Name="ARPSYSTEMCOMPONENT" Value="1" />
+      </MsiPackage>
+    </Chain>
+  </Bundle>
+</Wix>

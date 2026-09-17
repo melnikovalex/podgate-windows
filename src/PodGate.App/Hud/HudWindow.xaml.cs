@@ -19,6 +19,7 @@ public partial class HudWindow : Window
     private double _shown;
     private double _target;
     private bool _closing;
+    private bool _hovered;
 
     public HudWindow()
     {
@@ -29,6 +30,20 @@ public partial class HudWindow : Window
         CloseButton.MouseLeftButtonUp += (_, _) => BeginClose();
         CloseButton.MouseEnter += (_, _) => CloseButton.Background = new SolidColorBrush(Color.FromArgb(0x44, 0xFF, 0xFF, 0xFF));
         CloseButton.MouseLeave += (_, _) => CloseButton.Background = System.Windows.Media.Brushes.Transparent;
+
+        // The percentages are only interesting when you look at the card, and the card stays while you do:
+        // it must not vanish from under the pointer halfway through reading them.
+        MouseEnter += (_, _) =>
+        {
+            BatteryText.Opacity = 0.75;
+            _hovered = true;
+        };
+        MouseLeave += (_, _) =>
+        {
+            BatteryText.Opacity = 0;
+            _hovered = false;
+            if (_closeAt is not null) _closeAt = DateTime.UtcNow + TimeSpan.FromMilliseconds(600);
+        };
 
         Loaded += (_, _) =>
         {
@@ -47,6 +62,32 @@ public partial class HudWindow : Window
     {
         TitleText.Text = title;
         TitleText.Foreground = new SolidColorBrush(color);
+    }
+
+    /// <summary>
+    /// Battery on the card: a glyph that goes yellow at 20% and red at 5%, with the percentages hidden until
+    /// the pointer is over the card. Null hides it, which is what "no advertisement heard yet" looks like.
+    /// </summary>
+    public void SetBattery(int? lowest, string text)
+    {
+        if (lowest is null)
+        {
+            Battery.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        Color colour = lowest <= 5 ? Color.FromRgb(0xFF, 0x45, 0x3A)
+            : lowest <= 20 ? Color.FromRgb(0xFF, 0xD6, 0x0A)
+            : Color.FromRgb(0x8E, 0x8E, 0x93);
+        var brush = new SolidColorBrush(colour);
+        var shell = new SolidColorBrush(colour) { Opacity = 0.55 };
+
+        BatteryShell.BorderBrush = shell;
+        BatteryTip.Background = shell;
+        BatteryLevel.Background = brush;
+        BatteryLevel.Width = Math.Max(1.5, 17 * lowest.Value / 100.0);
+        BatteryText.Text = text;
+        Battery.Visibility = Visibility.Visible;
     }
 
     public void Update(string status, int percent)
@@ -71,7 +112,7 @@ public partial class HudWindow : Window
         Fill.Width = Track.ActualWidth * (_shown / 100);
 
         // Close on request, or by itself: a card left on screen by a crashed caller is a bug the user sees.
-        if (_closing) return;
+        if (_closing || _hovered) return;
         if (DateTime.UtcNow > _deadline || (_closeAt is not null && DateTime.UtcNow > _closeAt)) BeginClose();
     }
 

@@ -9,7 +9,22 @@
     <RootNamespace>PodGate.App</RootNamespace>
     <AssemblyName>PodGate</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Built from the artwork by assets\make-icons.ps1; also the setup.exe and Installed-apps icon. -->
+    <ApplicationIcon>PodGate.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PodGate.UiSnapshots" />
+  </ItemGroup>
+
+  <!-- The tray and title-bar artwork. Link puts them in an Assets folder, which is what makes the
+       resource names "PodGate.App.Assets.<file>" regardless of where the files live in the repo. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\icons\tray\*.png" Link="Assets\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\assets\icons\app\app-dark-256.png" Link="Assets\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\assets\icons\app\app-light-256.png" Link="Assets\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\assets\hints\*.png" Link="Assets\%(Filename)%(Extension)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PodGate.Core\PodGate.Core.csproj" />

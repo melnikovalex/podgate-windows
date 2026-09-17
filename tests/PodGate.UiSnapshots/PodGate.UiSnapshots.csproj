@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Renders setup and settings to PNGs with sample data, to check layout without clicking through. -->
+    <OutputType>Exe</OutputType>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PublishSingleFile>false</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PodGate.App\PodGate.App.csproj" />
+  </ItemGroup>
+
+</Project>

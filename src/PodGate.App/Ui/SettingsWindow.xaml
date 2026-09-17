@@ -1,0 +1,182 @@
+<ui:DarkWindow x:Class="PodGate.App.Ui.SettingsWindow"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:ui="clr-namespace:PodGate.App.Ui"
+               Title="PodGate settings" Width="915" Height="684">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header: the title, and beside it the reminder that closing this window does not quit PodGate.
+         The reminder only appears when someone started PodGate again instead of finding it in the tray. -->
+    <Grid Margin="32,20,32,0">
+      <TextBlock Style="{StaticResource Title}" Text="Settings" VerticalAlignment="Center"/>
+      <Border x:Name="AlreadyRunningHint" HorizontalAlignment="Right" VerticalAlignment="Center"
+              CornerRadius="10" Padding="10,8,14,8" Background="#17FFD60A" Visibility="Collapsed">
+        <StackPanel Orientation="Horizontal">
+          <Border CornerRadius="5" BorderThickness="1" BorderBrush="{DynamicResource WindowBorder}">
+            <ui:TrayHint Height="30"/>
+          </Border>
+          <StackPanel Margin="12,0,0,0" MaxWidth="186" VerticalAlignment="Center">
+            <TextBlock Text="PodGate keeps running here" FontSize="12" FontWeight="SemiBold" Foreground="#FFD60A"/>
+            <TextBlock Style="{StaticResource Caption}" FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap"
+                       Text="Closing this window doesn’t quit it. Click the arrow if the icon is hidden."/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- Both columns stretch, so the two cards end on the same line whatever is in them. -->
+    <Grid Grid.Row="1" Margin="32,14,32,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="24"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Style="{StaticResource SectionLabel}" Text="AIRPODS"/>
+        <Border Grid.Row="1" Style="{StaticResource GroupBox}" Padding="16,14">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ui:AirPodGlyph x:Name="DeviceGlyph" Width="28" Height="28" VerticalAlignment="Center"
+                            Foreground="{StaticResource PodOn}"/>
+            <StackPanel Grid.Column="1" Margin="14,0,14,0" VerticalAlignment="Center">
+              <TextBlock x:Name="DeviceName" Style="{StaticResource RowTitle}" TextTrimming="CharacterEllipsis"/>
+              <!-- Connection state only: the Bluetooth address means nothing to anyone reading this. -->
+              <TextBlock x:Name="DeviceState" Style="{StaticResource Caption}" Margin="0,2,0,0"
+                         TextTrimming="CharacterEllipsis"/>
+              <TextBlock x:Name="DeviceBattery" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
+            </StackPanel>
+            <Button x:Name="ChooseOtherButton" Grid.Column="2" Style="{StaticResource FillButton}" Height="32"
+                    VerticalAlignment="Center" Content="Change" AutomationProperties.Name="Choose other AirPods"/>
+          </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="2" Style="{StaticResource SectionLabel}" Text="GENERAL" Margin="4,20,0,8"/>
+        <Border Grid.Row="3" Style="{StaticResource GroupBox}" VerticalAlignment="Stretch">
+          <StackPanel>
+            <CheckBox x:Name="StartWithWindowsBox" Style="{StaticResource RowCheckBox}">
+              <TextBlock Style="{StaticResource RowTitle}" Text="Start PodGate with Windows"/>
+            </CheckBox>
+            <Rectangle Style="{StaticResource RowSeparator}"/>
+            <CheckBox x:Name="ConnectOnStartupBox" Style="{StaticResource RowCheckBox}">
+              <StackPanel>
+                <TextBlock Style="{StaticResource RowTitle}" Text="Connect AirPods when the PC starts"/>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0"
+                           Text="PodGate won’t disconnect them at shutdown, so Windows connects them at startup"/>
+              </StackPanel>
+            </CheckBox>
+            <Rectangle Style="{StaticResource RowSeparator}"/>
+            <CheckBox x:Name="AskWhenNearbyBox" Style="{StaticResource RowCheckBox}">
+              <StackPanel>
+                <TextBlock Style="{StaticResource RowTitle}" Text="Ask to connect when nearby"/>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0"
+                           Text="A small popup appears when the AirPods come in range"/>
+              </StackPanel>
+            </CheckBox>
+            <Rectangle Style="{StaticResource RowSeparator}"/>
+            <CheckBox x:Name="LowBatteryBox" Style="{StaticResource RowCheckBox}">
+              <StackPanel>
+                <TextBlock Style="{StaticResource RowTitle}" Text="Notify me when the battery is low"/>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0" Text="At 20% and again at 5%"/>
+              </StackPanel>
+            </CheckBox>
+            <Rectangle Style="{StaticResource RowSeparator}"/>
+            <CheckBox x:Name="EarDetectionBox" Style="{StaticResource RowCheckBox}">
+              <StackPanel>
+                <TextBlock Style="{StaticResource RowTitle}" Text="Pause when both pods are out"/>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0"
+                           Text="Taking out one pod keeps playing; music resumes when you put one back"/>
+              </StackPanel>
+            </CheckBox>
+            <TextBlock x:Name="GeneralError" Style="{StaticResource Caption}" Foreground="{StaticResource Red}"
+                       Margin="16,10,16,12" Visibility="Collapsed"
+                       Text="PodGate didn’t get permission, so this setting wasn’t changed."/>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource SectionLabel}" Text="MODES"/>
+        <Border Grid.Row="1" Style="{StaticResource GroupBox}" VerticalAlignment="Stretch">
+          <StackPanel>
+            <Grid>
+              <ui:HotkeyRow x:Name="ToggleRow" Action="Toggle" Title="Connect or disconnect" PencilOnly="True"
+                            Subtitle="Whichever applies right now"/>
+            </Grid>
+            <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="ConnectRow" Action="Connect" Title="Connect" Subtitle="Music and calls" PencilOnly="True"/>
+              <Button x:Name="ConnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom" Margin="0,0,16,13" AutomationProperties.Name="Configure output, mic">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+            <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="MusicRow" Action="ConnectMusic" Title="Connect for music" ShowMusicDot="True" PencilOnly="True"
+                            Subtitle="Best sound quality, no microphone"/>
+              <Button x:Name="MusicAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom" Margin="0,0,16,13" AutomationProperties.Name="Configure output, mic">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+            <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
+            <Grid>
+              <ui:HotkeyRow x:Name="ReleaseRow" Action="Release" Title="Disconnect" Subtitle="Hands them back to your phone"
+                            PencilOnly="True"/>
+              <Button x:Name="DisconnectAudioLink" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom" Margin="0,0,16,13" AutomationProperties.Name="Configure output, mic">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Configure output, mic" VerticalAlignment="Center"/>
+                  <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15" Margin="8,0,0,0"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+            <Rectangle Style="{StaticResource RowSeparator}" Margin="16,0,0,0"/>
+            <TextBlock Style="{StaticResource Caption3}" Margin="16,10,16,10" TextWrapping="Wrap"
+                       Text="Switching between Connect and Connect for music keeps the AirPods connected."/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Grid>
+
+    <Grid Grid.Row="2" Margin="32,18,32,22">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <Button x:Name="RunSetupButton" Style="{StaticResource LinkButton}" Content="Run setup again"/>
+        <TextBlock Text="·" Foreground="{StaticResource Label3}" Margin="10,0" VerticalAlignment="Center"/>
+        <Button x:Name="OpenLogButton" Style="{StaticResource LinkButton}" Content="Open log"/>
+        <TextBlock x:Name="VersionText" Style="{StaticResource Caption3}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+      </StackPanel>
+      <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Content="Done"/>
+    </Grid>
+  </Grid>
+</ui:DarkWindow>

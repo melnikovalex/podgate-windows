@@ -13,6 +13,7 @@ public static class CfgMgr
     private const uint LocateNormal = 0;
     private const uint LocatePhantom = 1;   // the node still exists while disabled
     private const uint DevpropTypeGuid = 0x0D;
+    private const uint DevpropTypeByte = 0x03;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct DEVPROPKEY
@@ -36,6 +37,27 @@ public static class CfgMgr
 
     [DllImport("cfgmgr32.dll")]
     private static extern int CM_Get_DevNode_Status(out uint status, out uint problem, uint devInst, uint flags);
+
+    // DEVPKEY_Bluetooth_Battery: what Windows shows for a connected Bluetooth device, one percentage.
+    private static readonly DEVPROPKEY BatteryKey = new()
+    {
+        fmtid = new Guid("104ea319-6ee2-4701-bd47-8ddbf425bbe5"),
+        pid = 2,
+    };
+
+    /// <summary>The battery Windows itself reports for a device, or null when it reports none.</summary>
+    public static int? GetBattery(string instanceId)
+    {
+        uint? devInst = LocateDevNode(instanceId);
+        if (devInst is null) return null;
+
+        var key = BatteryKey;
+        uint size = 1;
+        var buffer = new byte[1];
+        int result = CM_Get_DevNode_PropertyW(devInst.Value, ref key, out uint type, buffer, ref size, 0);
+        if (result != CrSuccess || type != DevpropTypeByte || size != 1) return null;
+        return buffer[0] is >= 0 and <= 100 ? buffer[0] : null;
+    }
 
     [DllImport("cfgmgr32.dll")]
     private static extern int CM_Setup_DevNode(uint devInst, uint flags);

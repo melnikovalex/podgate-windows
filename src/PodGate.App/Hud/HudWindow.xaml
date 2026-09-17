@@ -21,11 +21,17 @@
                    FontSize="15" FontWeight="SemiBold" Text="AirPods"/>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-          <!-- Battery lands here in Phase E: grey above 20%, yellow at 20, red at 5, percentage on hover. -->
-          <Border x:Name="BatteryBadge" Visibility="Collapsed" Margin="0,0,8,0" Padding="6,2"
-                  CornerRadius="7" Background="#28FFFFFF">
-            <TextBlock x:Name="BatteryText" Foreground="#FFEBEBF5" FontSize="11" Text=""/>
-          </Border>
+          <!-- Battery: grey above 20%, yellow at 20, red at 5. The percentages appear on hover. -->
+          <StackPanel x:Name="Battery" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,10,0"
+                      VerticalAlignment="Center">
+            <TextBlock x:Name="BatteryText" Margin="0,0,6,0" FontSize="11" Opacity="0" VerticalAlignment="Center"
+                       Foreground="#FFEBEBF5"/>
+            <Canvas Width="25" Height="12" VerticalAlignment="Center">
+              <Border x:Name="BatteryShell" Width="21" Height="12" CornerRadius="3" BorderThickness="1.5"/>
+              <Border x:Name="BatteryLevel" Canvas.Left="2.5" Canvas.Top="2.5" Height="7" Width="17" CornerRadius="1.5"/>
+              <Border x:Name="BatteryTip" Canvas.Left="22.5" Canvas.Top="4" Width="1.5" Height="4" CornerRadius="0.75"/>
+            </Canvas>
+          </StackPanel>
 
           <!-- Hides the card only. It deliberately cannot cancel a connect or release: stopping
                half way through would leave the device in a state nobody asked for. -->

@@ -41,6 +41,9 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
     // Let apps migrate their streams off the AirPods before the device disappears.
     private static readonly TimeSpan HandoverPause = TimeSpan.FromMilliseconds(700);
 
+    // Turning the Hands-Free side off or on takes about 3 s; its endpoints appear or vanish after that.
+    private static readonly TimeSpan HandsFreeWait = TimeSpan.FromSeconds(8);
+
     // A deferred disable is the failure this guards against; the baseband link can take a while to go.
     private static readonly TimeSpan ReleaseVerifyWait = TimeSpan.FromSeconds(25);
 
@@ -52,6 +55,14 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
         string address = PodGateConfig.ResolveAddress(config.Address);
         Guid? container = DeviceNodes.GetContainerId(address);
         if (container is null) return new FlowResult(false, "The AirPods are not paired with this PC.", stopwatch.Elapsed);
+
+        // Already connected: this is a switch between music and call quality, which takes about 3 s and
+        // never drops the link, instead of a disconnect and a fresh connect.
+        IReadOnlyList<AudioEndpoint> live = AudioEndpoints.ForContainer(container.Value);
+        if (live.Any(e => e.Flow == AudioFlow.Render && e.State == EndpointState.Active))
+        {
+            return await SwitchModeAsync(container.Value, progress, stopwatch, cancellationToken);
+        }
 
         RememberCurrentDefaults(container.Value);
 
@@ -71,24 +82,10 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
         }
 
         progress?.Report(new ConnectProgress("Switching audio over", 80));
-        if (!SetDefaultWithRetry(render.EndpointId, AudioFlow.Render, [AudioRole.Console, AudioRole.Multimedia, AudioRole.Communications], "output"))
+        ModeAudio profile = UserSettings.Load().For(config.Mode);
+        if (!await ApplyAsync(profile, container.Value, render, cancellationToken))
         {
             return new FlowResult(false, "Connected, but Windows would not switch the output.", stopwatch.Elapsed);
-        }
-
-        if (config.MicRoles != MicRoles.None && config.Mode != ConnectMode.Music)
-        {
-            AudioEndpoint? capture = await WaitForCaptureAsync(container.Value, cancellationToken);
-            if (capture is null) _log("no active capture endpoint (Windows activates it when an app opens the microphone)");
-            else
-            {
-                // Communications only by default: calls get the AirPods microphone while music stays on
-                // A2DP, instead of everything dropping to call quality the moment anything opens a mic.
-                AudioRole[] roles = config.MicRoles == MicRoles.All
-                    ? [AudioRole.Console, AudioRole.Multimedia, AudioRole.Communications]
-                    : [AudioRole.Communications];
-                SetDefaultWithRetry(capture.EndpointId, AudioFlow.Capture, roles, "microphone");
-            }
         }
 
         stopwatch.Stop();
@@ -100,7 +97,7 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
     public async Task<FlowResult> ReleaseAsync(IProgress<ConnectProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        progress?.Report(new ConnectProgress("Releasing...", 15));
+        progress?.Report(new ConnectProgress("Disconnecting...", 15));
 
         string address = PodGateConfig.ResolveAddress(config.Address);
         Guid? container = DeviceNodes.GetContainerId(address);
@@ -117,46 +114,118 @@ public sealed class ConnectFlow(PodGateConfig config, Action<string>? log = null
             IReadOnlyList<string> paused = await MediaControls.PausePlayingAsync(cancellationToken);
             if (paused.Count > 0) _log($"paused: {string.Join(", ", paused)}");
 
+            ModeAudio leaving = UserSettings.Load().DisconnectAudio;
             PreviousDefaults? previous = LoadPreviousDefaults();
-            if (previous?.Render is not null && !ours.Contains(previous.Render))
-            {
-                try
-                {
-                    AudioPolicy.SetDefault(previous.Render);
-                    _log("default output handed back to the previous device");
-                }
-                catch (Exception ex)
-                {
-                    _log($"handing the output back failed: {ex.Message}");
-                }
-            }
-
-            if (previous?.Capture is not null && !ours.Contains(previous.Capture))
-            {
-                try { AudioPolicy.SetDefaultForRole(previous.Capture, AudioRole.Communications); }
-                catch (Exception ex) { _log($"handing the microphone back failed: {ex.Message}"); }
-            }
+            Hand(leaving.Output, AudioFlow.Render, [AudioRole.Console, AudioRole.Multimedia, AudioRole.Communications], previous?.Render, ours);
+            Hand(leaving.Microphone, AudioFlow.Capture, [AudioRole.Console, AudioRole.Multimedia], previous?.Capture, ours);
+            Hand(leaving.CallMicrophone, AudioFlow.Capture, [AudioRole.Communications], previous?.Capture, ours);
 
             await Task.Delay(HandoverPause, cancellationToken);
         }
 
-        progress?.Report(new ConnectProgress("Disconnecting", 55));
+        progress?.Report(new ConnectProgress("Handing audio back", 55));
         PodGateResponse block = await PipeClient.SendAsync(PodGateVerb.Block, cancellationToken: cancellationToken);
-        if (!block.Ok) return new FlowResult(false, block.Error ?? "The service could not release the AirPods.", stopwatch.Elapsed);
+        if (!block.Ok) return new FlowResult(false, block.Error ?? "The service could not disconnect the AirPods.", stopwatch.Elapsed);
         _log($"blocked in {block.Seconds * 1000:N0} ms");
 
-        progress?.Report(new ConnectProgress("Blocking", 85));
+        progress?.Report(new ConnectProgress("Waiting for the link to drop", 85));
         bool quiet = await WaitUntilReleasedAsync(address, container, cancellationToken);
         stopwatch.Stop();
 
         if (!quiet)
         {
             _log("WARNING: something is still using the AirPods");
-            return new FlowResult(true, "Released, but something still holds them", stopwatch.Elapsed);
+            return new FlowResult(true, "Disconnected, but something still holds them", stopwatch.Elapsed);
         }
 
-        progress?.Report(new ConnectProgress("Released", 100));
-        return new FlowResult(true, "Released", stopwatch.Elapsed);
+        progress?.Report(new ConnectProgress("Disconnected", 100));
+        return new FlowResult(true, "Disconnected", stopwatch.Elapsed);
+    }
+
+    /// <summary>
+    /// Switching an already connected pair between music and calls: the Hands-Free side goes off or on
+    /// (about 3 s, the music keeps playing), then this mode's audio choices are applied.
+    /// </summary>
+    private async Task<FlowResult> SwitchModeAsync(Guid container, IProgress<ConnectProgress>? progress, Stopwatch stopwatch, CancellationToken cancellationToken)
+    {
+        bool wantHandsFree = config.Mode != ConnectMode.Music;
+        bool hasHandsFree = AudioEndpoints.ForContainer(container)
+            .Any(e => e.Transport == EndpointTransport.HandsFree && e.State == EndpointState.Active);
+
+        if (wantHandsFree != hasHandsFree)
+        {
+            progress?.Report(new ConnectProgress(wantHandsFree ? "Turning the microphone on" : "Switching to music quality", 35));
+            PodGateResponse answer = await PipeClient.SendAsync(
+                wantHandsFree ? PodGateVerb.HandsFreeOn : PodGateVerb.HandsFreeOff, cancellationToken: cancellationToken);
+            if (!answer.Ok) return new FlowResult(false, answer.Error ?? "The service could not switch the microphone.", stopwatch.Elapsed);
+            _log($"hands-free {(wantHandsFree ? "on" : "off")} in {answer.Seconds * 1000:N0} ms");
+
+            DateTime deadline = DateTime.UtcNow + HandsFreeWait;
+            while (DateTime.UtcNow < deadline)
+            {
+                bool now = AudioEndpoints.ForContainer(container)
+                    .Any(e => e.Transport == EndpointTransport.HandsFree && e.State == EndpointState.Active);
+                if (now == wantHandsFree) break;
+                await Task.Delay(PollInterval, cancellationToken);
+            }
+        }
+
+        progress?.Report(new ConnectProgress("Switching audio over", 80));
+        AudioEndpoint? render = AudioEndpoints.ForContainer(container)
+            .FirstOrDefault(e => e.Flow == AudioFlow.Render && e.Transport == EndpointTransport.A2dp && e.State == EndpointState.Active);
+        await ApplyAsync(UserSettings.Load().For(config.Mode), container, render, cancellationToken);
+
+        stopwatch.Stop();
+        string message = config.Mode == ConnectMode.Music ? "Music quality" : "Music and calls";
+        progress?.Report(new ConnectProgress(message, 100));
+        return new FlowResult(true, message, stopwatch.Elapsed);
+    }
+
+    /// <summary>Points the default devices where this mode says, leaving alone whatever it does not name.</summary>
+    private async Task<bool> ApplyAsync(ModeAudio profile, Guid container, AudioEndpoint? render, CancellationToken cancellationToken)
+    {
+        bool needsMicrophone = profile.Microphone.Kind is AudioTarget.AirPods || profile.CallMicrophone.Kind is AudioTarget.AirPods;
+        AudioEndpoint? capture = needsMicrophone ? await WaitForCaptureAsync(container, cancellationToken) : null;
+        if (needsMicrophone && capture is null) _log("no active capture endpoint (Windows activates it when an app opens the microphone)");
+
+        bool output = Point(profile.Output, AudioFlow.Render, [AudioRole.Console, AudioRole.Multimedia, AudioRole.Communications], render?.EndpointId, "output");
+        Point(profile.Microphone, AudioFlow.Capture, [AudioRole.Console, AudioRole.Multimedia], capture?.EndpointId, "microphone");
+        Point(profile.CallMicrophone, AudioFlow.Capture, [AudioRole.Communications], capture?.EndpointId, "call microphone");
+        return output;
+    }
+
+    private bool Point(AudioTarget target, AudioFlow flow, AudioRole[] roles, string? podsEndpoint, string what)
+    {
+        string? endpoint = target.Kind switch
+        {
+            AudioTarget.AirPods => podsEndpoint,
+            AudioTarget.Device => target.EndpointId,
+            _ => null,
+        };
+        if (endpoint is null) return target.Kind is AudioTarget.Unchanged;
+        return SetDefaultWithRetry(endpoint, flow, roles, what);
+    }
+
+    /// <summary>The disconnect side of the same idea: "previous" is what the connect remembered.</summary>
+    private void Hand(AudioTarget target, AudioFlow flow, AudioRole[] roles, string? previous, string[] ours)
+    {
+        string? endpoint = target.Kind switch
+        {
+            AudioTarget.Previous => previous,
+            AudioTarget.Device => target.EndpointId,
+            _ => null,
+        };
+        if (endpoint is null || ours.Contains(endpoint)) return;
+
+        try
+        {
+            foreach (AudioRole role in roles) AudioPolicy.SetDefaultForRole(endpoint, role);
+            _log($"{flow} handed back to {target.Describe()}");
+        }
+        catch (Exception ex)
+        {
+            _log($"handing the {flow} back failed: {ex.Message}");
+        }
     }
 
     /// <summary>

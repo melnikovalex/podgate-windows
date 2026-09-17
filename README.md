@@ -6,13 +6,15 @@ Windows reconnects paired Bluetooth audio devices at boot, often before you log 
 
 PodGate keeps the AirPods **blocked at rest** by disabling their Bluetooth device node, which survives reboots, sleep and Fast Startup, and enables it again when you connect. Other Bluetooth devices are not touched.
 
-> Status: early (0.x). Developed and tested with AirPods Pro 2 (USB-C) on Windows 11. Other AirPods models and Bluetooth adapters may behave differently; reports are welcome.
+> Status: early (0.x). Connecting, blocking and audio switching are developed and tested with AirPods Pro 2 (USB-C) on Windows 11.
+> Battery reading is additionally verified against AirPods (2nd generation) and AirPods (3rd generation), which broadcast the same way.
+> Other AirPods models and Bluetooth adapters may behave differently; reports are welcome.
 
 ## Install
 
 1. Pair your AirPods with Windows once, in **Settings > Bluetooth & devices**.
-2. Download `PodGate-Setup-<version>.exe` from [Releases](https://github.com/melnikovalex/podgate-windows/releases) and run it. It asks for administrator rights once.
-3. The tray icon appears. The AirPods are disconnected from the PC from now on until you connect them.
+2. Download `PodGate-<version>.msi` from [Releases](https://github.com/melnikovalex/podgate-windows/releases) and run it. It asks for administrator rights once.
+3. The tray icon appears and setup opens: pick your AirPods, set and test your shortcuts, and try a connect. From then on the AirPods stay with your phone until you ask for them.
 
 Installing a newer version over an existing one keeps your settings. A downgrade is refused.
 
@@ -23,12 +25,46 @@ Installing a newer version over an existing one keeps your settings. A downgrade
 | `Ctrl+Alt+Shift+A` | Connect or disconnect, whichever applies |
 | `Ctrl+Alt+Shift+S` | Connect for music only: no microphone, so audio stays in full A2DP quality |
 | Tray icon (left or right click) | Menu with the same actions and their hotkeys |
+| Tray icon (double click) | Opens Settings |
 
 - **Connect** makes the AirPods the default output and the default communications microphone, so calls use them while music stays in high quality. It gives up after about 12 s if they don't answer (in the case, or out of range) and blocks them again.
 - **Disconnect** pauses playback if it was going to the AirPods, hands audio back to the previous device, and blocks the AirPods so your phone can take them.
 - A small card at the bottom of the screen shows progress and disappears by itself. Its close button only hides it; the action continues.
 - **Shutdown and restart** release the AirPods automatically.
-- Tray icon: white = connected, purple = connected for music, grey = disconnected.
+- Tray icon: white = connected, purple = connected for music, grey = disconnected. It follows the taskbar theme.
+- **Ask to connect when nearby** offers a click-to-connect notification when the AirPods come within about
+  an arm's length or go into an ear. It stays quiet in a crowded room - if more than one pair is that
+  close there is no telling whose just arrived - asks at most once every 15 minutes, and if an offer
+  goes unanswered it waits four hours before the next one. Switched off in Settings.
+
+## Battery and ear detection
+
+PodGate reads the battery from the AirPods' own Bluetooth broadcast, so it works even when they are connected to your phone instead of this PC:
+
+- **Tray menu:** `L 80% · R 75%⚡ · Case 60%`, one value when both pods agree, a bolt on whatever is charging, and
+  `Battery unknown` when nothing has been heard. The case only reports a level while it holds a pod.
+- **Warnings** at 20% and again at 5%, switched off in Settings.
+- **Progress popup:** a battery glyph, grey above 20%, yellow at 20%, red at 5%. The percentages appear when the pointer is over the card.
+- **Ear detection:** taking the AirPods out of your ears pauses what is playing, putting one back within a minute starts it
+  again, and only while the sound is going to them. The broadcast reports whether *any* pod is in an ear and nothing more,
+  so this fires when the last pod comes out, not the first. Switched off in Settings.
+
+The broadcast comes from a rotating random address and Windows keeps no LE identity key for AirPods, so there is no way to
+match it to your pair by Bluetooth address. PodGate follows one advertiser by signal strength instead, and only hands over
+to another that comes within a few dB of it, which keeps a neighbour's identical AirPods out. When your pair goes quiet the
+battery goes unknown rather than becoming someone else's. Another pair of the same model held right next to yours can still
+be read instead.
+
+## Settings
+
+**Settings...** in the tray menu:
+
+- **AirPods:** which pair PodGate manages. **Choose other AirPods** runs setup again for the new pair and gives the old one back to Windows.
+- **Start PodGate with Windows** (per user).
+- **Connect AirPods when the PC starts:** stock Windows behaviour again. PodGate leaves the AirPods alone at shutdown, so Windows connects them at startup.
+- **Shortcuts:** change any of the four, and test each one with a live key press. A new shortcut only replaces the old one once its test press arrives.
+
+Changing the managed AirPods or the startup behaviour asks for administrator permission once, because the service takes those from machine-wide configuration.
 
 ## Uninstall
 
@@ -47,11 +83,16 @@ The details that make it work reliably (and the Windows behaviours behind every 
 
 ## Build
 
-Requirements: Windows 10 2004 or later, .NET 10 SDK, Inno Setup 6 (`winget install JRSoftware.InnoSetup`).
+Requirements: Windows 10 2004 or later, the .NET 10 SDK, and WiX 5:
 
 ```powershell
+dotnet tool install --global wix --version 5.0.2
+wix extension add -g WixToolset.Util.wixext/5.0.2
+wix extension add -g WixToolset.UI.wixext/5.0.2
+
 dotnet build PodGate.slnx
-powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1   # -> artifacts\setup\PodGate-Setup-<version>.exe
+dotnet test tests\PodGate.Core.Tests\PodGate.Core.Tests.csproj
+powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1   # -> artifacts\setup\PodGate-<version>.msi
 ```
 
 `tests/PodGate.Hardware.SmokeTests` needs real, paired AirPods and is never run in CI. Before experimenting with Bluetooth state on your own machine, take a snapshot with `scripts\backup-bt.ps1`.
@@ -70,6 +111,10 @@ Releases are built from this repository by GitHub Actions. Code signing for rele
 | Approvers | [melnikovalex](https://github.com/melnikovalex) |
 
 Once signing is in place, each signed release is built from a tagged commit on `main`, and only binaries built from this repository's source are signed.
+
+## Trademarks
+
+AirPods and Apple are trademarks of Apple Inc. PodGate is an independent project and is not affiliated with, endorsed by or sponsored by Apple Inc. The names are used only to say which headphones this software works with.
 
 ## License
 

@@ -1,0 +1,60 @@
+<UserControl x:Class="PodGate.App.Ui.HotkeyRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:PodGate.App.Ui"
+             Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent">
+  <Grid x:Name="Root" Margin="16,11">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- Title and subtitle -->
+    <StackPanel x:Name="Heading" VerticalAlignment="Center">
+      <TextBlock x:Name="TitleText" Style="{StaticResource RowTitle}">
+        <Run x:Name="TitleRun"/><Run x:Name="MusicDot" Text=" ●" Foreground="{StaticResource Purple}"/>
+      </TextBlock>
+      <TextBlock x:Name="SubtitleText" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
+    </StackPanel>
+
+    <!-- Status: Works / Press it now / Taken -->
+    <StackPanel x:Name="Status" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+      <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource Label}" Margin="0,0,6,0" Visibility="Collapsed"/>
+      <ui:Glyph x:Name="StatusIcon" Width="14" Height="14" StrokeThickness="2.4" Margin="0,0,4,0" Visibility="Collapsed"/>
+      <TextBlock x:Name="StatusText" FontSize="12" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <!-- Keys and links -->
+    <Grid x:Name="Controls" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,9,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel x:Name="KeysArea" Orientation="Horizontal" VerticalAlignment="Center">
+        <ItemsControl x:Name="Keys" ItemTemplate="{StaticResource KeycapTemplate}" ItemsPanel="{StaticResource HorizontalPanel}"
+                      Focusable="False"/>
+        <TextBlock x:Name="NotSet" Text="Not set" FontSize="13" Foreground="{StaticResource Label3}" VerticalAlignment="Center"
+                   Visibility="Collapsed"/>
+        <Border x:Name="EmptyCap" Style="{StaticResource KeycapPlaceholder}" Visibility="Collapsed">
+          <TextBlock x:Name="EmptyCapText" Text="Set shortcut" FontSize="12" Foreground="{DynamicResource Label3}"
+                     VerticalAlignment="Center"/>
+        </Border>
+        <Button x:Name="PencilButton" Style="{StaticResource LinkButton}" Margin="10,0,0,0" Visibility="Collapsed"
+                ToolTip="Change this shortcut" AutomationProperties.Name="Change this shortcut">
+          <ui:Glyph Data="{StaticResource G.Pencil}" Width="15" Height="15"
+                    Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+        </Button>
+      </StackPanel>
+      <StackPanel x:Name="Links" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+        <Button x:Name="ChangeLink" Style="{StaticResource LinkButton}" Content="Change" Margin="16,0,0,0"/>
+        <Button x:Name="ClearLink" Style="{StaticResource LinkButton}" Content="Clear" Margin="16,0,0,0"/>
+        <Button x:Name="TestLink" Style="{StaticResource LinkButton}" Content="Test" Margin="16,0,0,0"/>
+        <Button x:Name="CancelLink" Style="{StaticResource LinkButton}" Content="Cancel" Margin="16,0,0,0"/>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

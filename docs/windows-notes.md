@@ -13,6 +13,11 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **After a boot with the node disabled, enabling it can leave the live node disabled.** ConfigFlags is cleared, but the node, never started this boot, keeps problem code 22 (`CM_PROB_DISABLED`) and has no audio children, so the connect times out with the AirPods in range. `CM_Enable_DevNode` does nothing once the flag is clear; re-enumerating, restarting the node, cycling services and an uncached SDP query do not help either. `pnputil /enable-device` starts it. `BlockController.StartIfStillDisabled` checks the live problem code, tries `CM_Setup_DevNode`, and falls back to `pnputil`. It does not happen on every boot.
 - **Endpoint states tell you where you are:** `NotPresent` after a boot with the device blocked (no KS filter exists yet), `Unplugged` after an in-session disconnect (the one-shot reconnect works), `Active` when connected.
 
+## Switching between music and call quality
+
+- **The Hands-Free side can be turned off without dropping the link.** Disabling the device's `0000111e` service while it is connected takes ~3 s, leaves the A2DP render endpoint `Active` and the baseband link up, and makes both Hands-Free endpoints `NotPresent`. Enabling it again takes ~3 s and brings a Hands-Free render and capture endpoint back as `Active`, again without touching the music stream. That is how music quality is switched on a connected pair, instead of disconnecting and reconnecting.
+- **The Hands-Free endpoints come back with new identifiers**, and the old ones linger as `NotPresent`. Anything that remembers an endpoint id must resolve it again after a switch; match by container and transport, never by a stored id.
+
 ## Audio defaults
 
 - **The Hands-Free render endpoint goes `Active` about a second before the A2DP one**, and Windows refuses it as a default output with `E_FAIL`. Connect waits for the A2DP render endpoint specifically (up to 12 s, polled every 200 ms).
@@ -37,6 +42,22 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **Named pipes carry bytes, not messages.** Use line- or length-delimited framing, and drain the pipe before disconnecting or the reply is lost.
 - **Explorer holds a shortcut's hotkey for a while** after the `.lnk` is deleted, so a freshly freed combination can be briefly unavailable.
 - **Overlapping connect and release runs** can leave the AirPods connected in Hands-Free-only mode: one action at a time.
+
+## Battery over Bluetooth LE
+
+- **AirPods battery only exists in an advertisement.** Apple's "proximity pairing" broadcast (manufacturer `0x004C`, type `0x07`, 27 bytes) carries battery per pod and case as nibbles in ten-percent steps, plus charging and wear bits. Nothing else on Windows reports it while the AirPods are connected to a phone.
+- **Other Apple products send type `0x07` too.** Their bytes decode into believable nonsense; byte 4 is `0x20` on every pair that reports battery, which is what tells them apart (measured: a neighbouring device read as "AirPods, left 0 %").
+- **The advertising address rotates** every few minutes and carries nothing that ties it to a paired device, so a pair can only be picked by model and signal strength. Passive scanning is enough; no pairing and no elevation are involved.
+- **The rotating address cannot be resolved back to the real one.** That would need the pair's identity resolving key, and Windows has none: AirPods create only `BTHENUM` device nodes, never `BTHLE`, so there is no LE bond and no key - not in `BTHPORT\Parameters\Keys` (which only SYSTEM can read, not even Administrators) and nowhere else. Matching battery advertisements by Bluetooth address is therefore impossible, however much privilege is available.
+- **Neighbouring AirPods of the same model are normal, not a corner case.** Measured in one flat: four other Apple audio devices in range, one of them the same model as the user's pair. Signal strength separates them by a wide margin - the owner's pair between -16 and -46 dBm, the neighbour's between -70 and -84 - so the reading is tied to one advertising address and only handed over to another that comes within a few dB of it.
+- **Different models behave identically.** The layout above was checked on three models (`0x24`, `0x0F`, `0x13`) across case-open, one pod out, both out, back in the case, lid closed and a case on a charger. Only the name table is per model.
+- **The case level lags a few seconds** behind a pod being put in: the charging bit sets immediately while the case nibble is still `0xF`.
+- **The two pods advertise at the same time**, one with the flip bit set and one without, and every field that names a pod follows the *nibble position* in the battery byte rather than a fixed side. That includes the charging bits: bit 0 of the charge nibble belongs to the pod in the low nibble, bit 1 to the one in the high nibble. Reading both simultaneous advertisements and requiring them to agree is what pins the order down; taking a single one at face value puts the charging mark on the wrong pod.
+- **The case only reports a level while it holds a pod.** With both pods out, the case nibble is `0xF` (not reported) and the case-charging bit is clear even when the case is on a charger. A missing case percentage therefore means "both pods are out", not "the reading was lost".
+- **The charge nibble's bit 2 is the case**, and it sets within a second of plugging the case in and clears again when it is unplugged. Bit 3 was set in every state observed and is not used.
+- **A closed case stops advertising altogether** within seconds, so battery goes unknown while the AirPods are simply put away.
+- **The wear bit is byte 5, bit 1, and it is one bit for the pair.** Measured by toggling it: a pod out of the case and held in the hand clears it, the same pod in an ear sets it, three times over. With both pods in and one then removed for a minute it never moved, so the advertisement says "some pod is in an ear" and nothing more - which pod cannot be known, and neither can the first pod coming out. Bit 2 of the same nibble is "a pod is in the case", and reading that one as wear makes ear detection fire on the case lid instead of the ear.
+- **Windows reports no battery on the device node for AirPods**, connected or not: `DEVPKEY_Bluetooth_Battery` is empty. The advertisement is the only source, so there is nothing to cross-check a reading against.
 
 ## Antivirus
 

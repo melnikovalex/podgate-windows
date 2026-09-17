@@ -65,6 +65,147 @@ if (action == "--pipe-selftest")
     return 0;
 }
 
+// --- turn the Hands-Free side of the AirPods off or on while they stay connected ------------------
+if (action == "--hands-free")
+{
+    string? wanted = args.SkipWhile(a => a != "--hands-free").Skip(1).FirstOrDefault();
+    if (wanted is not "on" and not "off") { Console.WriteLine("usage: --hands-free on|off"); return 2; }
+
+    string hfAddress = PodGateConfig.ResolveAddress();
+    var handsFree = new Guid("0000111e-0000-1000-8000-00805f9b34fb");
+    var watch = Stopwatch.StartNew();
+    uint result = BtNative.SetServiceState(hfAddress, handsFree, enable: wanted == "on");
+    Console.WriteLine($"  hands-free {wanted}: Win32 {result} in {watch.ElapsedMilliseconds} ms");
+
+    Guid? hfContainer = DeviceNodes.GetContainerId(hfAddress);
+    for (int i = 0; i < 6; i++)
+    {
+        await Task.Delay(1000);
+        string states = hfContainer is null ? "no container"
+            : string.Join("  ", AudioEndpoints.ForContainer(hfContainer.Value).Select(e => $"{e.Flow}/{e.Transport}={e.State}"));
+        Console.WriteLine($"  +{i + 1}s connected={BtNative.FindPairedDevice(hfAddress)?.Connected}  {states}");
+    }
+    return result == 0 ? 0 : 1;
+}
+
+// --- raw Apple advertisement bytes, to check the battery layout against real hardware --------------
+if (action == "--ble-raw")
+{
+    var payloads = new Dictionary<string, int>();
+    var raw = new Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher
+    {
+        ScanningMode = Windows.Devices.Bluetooth.Advertisement.BluetoothLEScanningMode.Passive,
+    };
+    raw.Received += (_, e) =>
+    {
+        foreach (var section in e.Advertisement.ManufacturerData)
+        {
+            if (section.CompanyId != 0x004C) continue;
+            var bytes = new byte[section.Data.Length];
+            using (var reader = Windows.Storage.Streams.DataReader.FromBuffer(section.Data)) reader.ReadBytes(bytes);
+            string hex = Convert.ToHexString(bytes);
+            lock (payloads)
+            {
+                if (payloads.TryGetValue(hex, out int count)) { payloads[hex] = count + 1; return; }
+                payloads[hex] = 1;
+            }
+            Console.WriteLine($"  {DateTime.Now:HH:mm:ss} rssi={e.RawSignalStrengthInDBm,4} len={bytes.Length,2} {hex}");
+        }
+    };
+    raw.Start();
+    Console.WriteLine("  dumping distinct Apple payloads for 30 s");
+    await Task.Delay(TimeSpan.FromSeconds(30));
+    raw.Stop();
+    Console.WriteLine($"  {payloads.Count} distinct payloads");
+    return 0;
+}
+
+// --- battery layout probe: one line per state change of our own pair, with the bytes spelled out ----
+if (action == "--ble-probe")
+{
+    int probeSeconds = 300;
+    string? probeArg = args.SkipWhile(a => a != "--ble-probe").Skip(1).FirstOrDefault();
+    if (probeArg is not null && int.TryParse(probeArg, out int probeParsed)) probeSeconds = probeParsed;
+
+    // "all" keeps every model, which is how a second pair is compared against the configured one.
+    bool everyModel = args.Contains("all");
+    int ours = -1;
+    if (!everyModel)
+    {
+        int? paired = PodGateConfig.ProductId(PodGateConfig.ResolveAddress());
+        if (paired is null) { Console.WriteLine("  no product id in the pairing record; cannot tell our pair apart"); return 2; }
+        ours = paired.Value & 0xFF;
+    }
+    Console.WriteLine(everyModel
+        ? $"  watching every AirPods model for {probeSeconds} s; one line whenever bytes 3-7 change"
+        : $"  watching model 0x{ours:X2} for {probeSeconds} s; one line whenever bytes 3-7 change");
+    Console.WriteLine("  time      rssi  b3 b4 b5 b6 b7   status bits  pods    L     R     case   charge");
+
+    string last = "";
+    var probe = new Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher
+    {
+        ScanningMode = Windows.Devices.Bluetooth.Advertisement.BluetoothLEScanningMode.Passive,
+    };
+    probe.Received += (_, e) =>
+    {
+        foreach (var section in e.Advertisement.ManufacturerData)
+        {
+            if (section.CompanyId != 0x004C) continue;
+            var bytes = new byte[section.Data.Length];
+            using (var reader = Windows.Storage.Streams.DataReader.FromBuffer(section.Data)) reader.ReadBytes(bytes);
+            if (bytes.Length != 27 || bytes[0] != 0x07 || bytes[4] != 0x20) continue;
+            if (!everyModel && bytes[3] != ours) continue;
+
+            string key = $"{bytes[3]:X2}{bytes[4]:X2}{bytes[5]:X2}{bytes[6]:X2}{bytes[7]:X2}";
+            lock (probe) { if (key == last) return; last = key; }
+
+            var parsed = PodGate.Core.Ble.AppleAdvert.Parse(bytes, e.RawSignalStrengthInDBm)!;
+            Console.WriteLine(
+                $"  {DateTime.Now:HH:mm:ss}  {e.RawSignalStrengthInDBm,4}  " +
+                $"{bytes[3]:X2} {bytes[4]:X2} {bytes[5]:X2} {bytes[6]:X2} {bytes[7]:X2}   " +
+                $"{(everyModel ? parsed.ModelName.PadRight(38) : "")}" +
+                $"{Convert.ToString(bytes[5], 2).PadLeft(8, '0')}     " +
+                $"{bytes[6] >> 4,2}/{bytes[6] & 0x0F,-2}  " +
+                $"L={Cell(parsed.Left)}{(parsed.LeftCharging ? "+" : " ")} R={Cell(parsed.Right)}{(parsed.RightCharging ? "+" : " ")} " +
+                $"case={Cell(parsed.Case)}{(parsed.CaseCharging ? "+" : " ")} " +
+                $"chargeNibble={bytes[7] >> 4:X1} inEar={(parsed.InEar ? "yes" : "no ")}");
+        }
+    };
+    probe.Start();
+    await Task.Delay(TimeSpan.FromSeconds(probeSeconds));
+    probe.Stop();
+    return 0;
+
+    static string Cell(int? value) => value is null ? "  ?" : $"{value,3}";
+}
+
+// --- watch the Apple battery advertisement (manufacturer 0x004C) -----------------------------------
+if (action == "--ble-watch")
+{
+    int seconds = 30;
+    string? secondsArg = args.SkipWhile(a => a != "--ble-watch").Skip(1).FirstOrDefault();
+    if (secondsArg is not null && int.TryParse(secondsArg, out int parsed)) seconds = parsed;
+
+    // Exactly what the tray does: the configured pair's model byte, and the same -70 dBm threshold. The
+    // point of this verb is to see what the app would show, neighbours included or excluded for real.
+    int? expected = PodGateConfig.ProductId(PodGateConfig.ResolveAddress()) & 0xFF;
+    Console.WriteLine($"  reading model 0x{expected:X2} at the app's own threshold; anything else is ignored");
+    using var watcher = new PodGate.Core.Ble.PodWatcher(log: Console.WriteLine, model: expected);
+    watcher.Updated += status => Console.WriteLine(
+        $"  {status.Seen:HH:mm:ss} rssi={status.Rssi,4} model=0x{status.Model:X2} {status.ModelName,-38} " +
+        $"L={Show(status.Left)}{(status.LeftCharging ? "+" : " ")} R={Show(status.Right)}{(status.RightCharging ? "+" : " ")} " +
+        $"case={Show(status.Case)}{(status.CaseCharging ? "+" : " ")} inEar={(status.InEar ? "yes" : "no ")} " +
+        $"");
+    watcher.Start();
+    Console.WriteLine($"  listening for {seconds} s; open the case, put a pod in, take it out...");
+    await Task.Delay(TimeSpan.FromSeconds(seconds));
+    watcher.Stop();
+    Console.WriteLine(watcher.Current is null ? "FAIL  no Apple advertisement heard" : "PASS  advertisements received");
+    return watcher.Current is null ? 1 : 0;
+
+    static string Show(int? value) => value is null ? " ? " : $"{value,3}";
+}
+
 // --- live enable: CM_Enable_DevNode on the root, reporting live problem code before and after -----
 if (action == "--live-enable")
 {

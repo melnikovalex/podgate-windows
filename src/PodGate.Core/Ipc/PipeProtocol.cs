@@ -5,9 +5,10 @@ using System.Text.Json.Serialization;
 namespace PodGate.Core.Ipc;
 
 /// <summary>
-/// The complete set of things the unelevated app may ask the service to do. Frozen at five, and none of
-/// them takes a device argument: the target always comes from admin-written config.json, so an
-/// unelevated caller can never redirect an elevated action.
+/// The complete set of things the unelevated app may ask the service to do. None of them takes a device
+/// argument: the target always comes from admin-written config.json, so an unelevated caller can never
+/// redirect an elevated action. The Hands-Free pair was added for switching between music and call quality
+/// without disconnecting, which needs the same rights as a block (ADR-002).
 /// </summary>
 public enum PodGateVerb
 {
@@ -16,6 +17,8 @@ public enum PodGateVerb
     Block,
     Unblock,
     Restore,
+    HandsFreeOn,
+    HandsFreeOff,
 }
 
 public sealed class PodGateRequest

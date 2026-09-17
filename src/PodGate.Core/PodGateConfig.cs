@@ -21,6 +21,7 @@ public static class Paths
     public static string ConfigFile => Path.Combine(DataDir, "config.json");
     public static string BackupsDir => Path.Combine(DataDir, "backups");
     public static string StateFile => Path.Combine(UserDataDir, "state.json");
+    public static string UserSettingsFile => Path.Combine(UserDataDir, "settings.json");
 
     public static string LogFile(string component) =>
         component == "service" ? Path.Combine(DataDir, "service.log") : Path.Combine(UserDataDir, $"{component}.log");
@@ -62,6 +63,12 @@ public sealed class PodGateConfig
     public ConnectMode Mode { get; set; } = ConnectMode.Full;
     public HotkeyConfig Hotkeys { get; set; } = new();
     public bool LowBatteryWarnings { get; set; } = true;
+
+    /// <summary>
+    /// Stock behaviour at boot: the service leaves the AirPods enabled at shutdown and unblocks them when
+    /// it starts, so Windows connects them by itself. Machine-wide, because the service acts on it.
+    /// </summary>
+    public bool ConnectOnStartup { get; set; }
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -109,7 +116,7 @@ public sealed class PodGateConfig
             if (paired.Any(d => d.Address == candidate)) return candidate;
         }
 
-        var apple = paired.Where(d => IsApple(d.Address)).Select(d => d.Address).ToList();
+        var apple = paired.Where(d => IsAppleDevice(d.Address)).Select(d => d.Address).ToList();
         if (apple.Count == 1) return apple[0];
 
         string known = string.Join(", ", paired.Select(d => $"{d.Name} [{d.Address}]"));
@@ -117,7 +124,19 @@ public sealed class PodGateConfig
             $"Cannot decide which device to manage. Paired: {known}. Set it in the configuration.");
     }
 
-    private static bool IsApple(string address)
+    /// <summary>
+    /// The product id Windows recorded when the device was paired (0x2024 for AirPods Pro 2 USB-C). The
+    /// battery advertisement carries the same two bytes, which is how a neighbour's pair is told apart
+    /// from this one without any address to match on.
+    /// </summary>
+    public static int? ProductId(string address)
+    {
+        using RegistryKey? key = Registry.LocalMachine.OpenSubKey(
+            $@"SYSTEM\CurrentControlSet\Services\BTHPORT\Parameters\Devices\{address.ToLowerInvariant()}");
+        return key?.GetValue("PID") as int?;
+    }
+
+    public static bool IsAppleDevice(string address)
     {
         using RegistryKey? key = Registry.LocalMachine.OpenSubKey(
             $@"SYSTEM\CurrentControlSet\Services\BTHPORT\Parameters\Devices\{address.ToLowerInvariant()}");
