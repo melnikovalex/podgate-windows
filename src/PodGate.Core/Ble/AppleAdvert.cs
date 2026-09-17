@@ -39,14 +39,20 @@ public sealed record PodStatus
 
         string pods = (Left, Right) switch
         {
-            ({ } left, { } right) when left != right => $"L {left}% · R {right}%",
-            ({ } left, _) => $"{left}%",
-            (_, { } right) => $"{right}%",
+            ({ } left, { } right) when left != right => $"L {Level(left, LeftCharging)} · R {Level(right, RightCharging)}",
+            ({ } left, _) => Level(left, LeftCharging || RightCharging),
+            (_, { } right) => Level(right, LeftCharging || RightCharging),
             _ => "",
         };
-        string caseText = Case is null ? "" : $"Case {Case}%";
+        string caseText = Case is null ? "" : $"Case {Level(Case.Value, CaseCharging)}";
         return string.Join(" · ", new[] { pods, caseText }.Where(part => part.Length > 0));
     }
+
+    /// <summary>
+    /// A percentage, with a bolt when that part is charging. The case only reports a level while it holds
+    /// a pod, so "Case 90%" disappearing simply means both pods are out, not that the reading was lost.
+    /// </summary>
+    private static string Level(int percent, bool charging) => charging ? $"{percent}%⚡" : $"{percent}%";
 
     /// <summary>
     /// True only for a reading worth showing. A pair that is not reporting sends zero nibbles, so an
@@ -105,8 +111,12 @@ public static class AppleAdvert
             Left = flipped ? first : second,
             Right = flipped ? second : first,
             Case = Battery(caseAndCharge & 0x0F),
-            LeftCharging = (charging & (flipped ? 0b0000_0001 : 0b0000_0010)) != 0,
-            RightCharging = (charging & (flipped ? 0b0000_0010 : 0b0000_0001)) != 0,
+            // Measured, not assumed: the charging bits follow the nibble position in byte 6, not the pod.
+            // Bit 0 belongs to the pod in the low nibble, bit 1 to the one in the high nibble, so they
+            // swap with the flip bit exactly like the battery values do. Both of the pair's simultaneous
+            // advertisements then agree on which pod is charging, which is how this was pinned down.
+            LeftCharging = (charging & (flipped ? 0b0000_0010 : 0b0000_0001)) != 0,
+            RightCharging = (charging & (flipped ? 0b0000_0001 : 0b0000_0010)) != 0,
             CaseCharging = (charging & 0b0000_0100) != 0,
             LeftInEar = flipped ? firstInEar : secondInEar,
             RightInEar = flipped ? secondInEar : firstInEar,

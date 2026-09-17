@@ -48,6 +48,10 @@ Observed on Windows 11 with AirPods Pro 2 (USB-C) and the in-box Microsoft Bluet
 - **AirPods battery only exists in an advertisement.** Apple's "proximity pairing" broadcast (manufacturer `0x004C`, type `0x07`, 27 bytes) carries battery per pod and case as nibbles in ten-percent steps, plus charging and wear bits. Nothing else on Windows reports it while the AirPods are connected to a phone.
 - **Other Apple products send type `0x07` too.** Their bytes decode into believable nonsense; byte 4 is `0x20` on every pair that reports battery, which is what tells them apart (measured: a neighbouring device read as "AirPods, left 0 %").
 - **The advertising address rotates** every few minutes and carries nothing that ties it to a paired device, so a pair can only be picked by model and signal strength. Passive scanning is enough; no pairing and no elevation are involved.
+- **The two pods advertise at the same time**, one with the flip bit set and one without, and every field that names a pod follows the *nibble position* in the battery byte rather than a fixed side. That includes the charging bits: bit 0 of the charge nibble belongs to the pod in the low nibble, bit 1 to the one in the high nibble. Reading both simultaneous advertisements and requiring them to agree is what pins the order down; taking a single one at face value puts the charging mark on the wrong pod.
+- **The case only reports a level while it holds a pod.** With both pods out, the case nibble is `0xF` (not reported) and the case-charging bit is clear even when the case is on a charger. A missing case percentage therefore means "both pods are out", not "the reading was lost".
+- **The charge nibble's bit 2 is the case**, and it sets within a second of plugging the case in and clears again when it is unplugged. Bit 3 was set in every state observed and is not used.
+- **A closed case stops advertising altogether** within seconds, so battery goes unknown while the AirPods are simply put away.
 - **The wear bits are the least certain part** of the layout: a pair that never reports them simply never triggers ear detection.
 
 ## Antivirus

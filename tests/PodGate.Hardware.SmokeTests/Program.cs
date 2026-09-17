@@ -120,6 +120,65 @@ if (action == "--ble-raw")
     return 0;
 }
 
+// --- battery layout probe: one line per state change of our own pair, with the bytes spelled out ----
+if (action == "--ble-probe")
+{
+    int probeSeconds = 300;
+    string? probeArg = args.SkipWhile(a => a != "--ble-probe").Skip(1).FirstOrDefault();
+    if (probeArg is not null && int.TryParse(probeArg, out int probeParsed)) probeSeconds = probeParsed;
+
+    // "all" keeps every model, which is how a second pair is compared against the configured one.
+    bool everyModel = args.Contains("all");
+    int ours = -1;
+    if (!everyModel)
+    {
+        int? paired = PodGateConfig.ProductId(PodGateConfig.ResolveAddress());
+        if (paired is null) { Console.WriteLine("  no product id in the pairing record; cannot tell our pair apart"); return 2; }
+        ours = paired.Value & 0xFF;
+    }
+    Console.WriteLine(everyModel
+        ? $"  watching every AirPods model for {probeSeconds} s; one line whenever bytes 3-7 change"
+        : $"  watching model 0x{ours:X2} for {probeSeconds} s; one line whenever bytes 3-7 change");
+    Console.WriteLine("  time      rssi  b3 b4 b5 b6 b7   status bits  pods    L     R     case   charge");
+
+    string last = "";
+    var probe = new Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher
+    {
+        ScanningMode = Windows.Devices.Bluetooth.Advertisement.BluetoothLEScanningMode.Passive,
+    };
+    probe.Received += (_, e) =>
+    {
+        foreach (var section in e.Advertisement.ManufacturerData)
+        {
+            if (section.CompanyId != 0x004C) continue;
+            var bytes = new byte[section.Data.Length];
+            using (var reader = Windows.Storage.Streams.DataReader.FromBuffer(section.Data)) reader.ReadBytes(bytes);
+            if (bytes.Length != 27 || bytes[0] != 0x07 || bytes[4] != 0x20) continue;
+            if (!everyModel && bytes[3] != ours) continue;
+
+            string key = $"{bytes[3]:X2}{bytes[4]:X2}{bytes[5]:X2}{bytes[6]:X2}{bytes[7]:X2}";
+            lock (probe) { if (key == last) return; last = key; }
+
+            var parsed = PodGate.Core.Ble.AppleAdvert.Parse(bytes, e.RawSignalStrengthInDBm)!;
+            Console.WriteLine(
+                $"  {DateTime.Now:HH:mm:ss}  {e.RawSignalStrengthInDBm,4}  " +
+                $"{bytes[3]:X2} {bytes[4]:X2} {bytes[5]:X2} {bytes[6]:X2} {bytes[7]:X2}   " +
+                $"{(everyModel ? parsed.ModelName.PadRight(38) : "")}" +
+                $"{Convert.ToString(bytes[5], 2).PadLeft(8, '0')}     " +
+                $"{bytes[6] >> 4,2}/{bytes[6] & 0x0F,-2}  " +
+                $"L={Cell(parsed.Left)}{(parsed.LeftCharging ? "+" : " ")} R={Cell(parsed.Right)}{(parsed.RightCharging ? "+" : " ")} " +
+                $"case={Cell(parsed.Case)}{(parsed.CaseCharging ? "+" : " ")} " +
+                $"chargeNibble={bytes[7] >> 4:X1} inEar={(parsed.LeftInEar ? "L" : "-")}{(parsed.RightInEar ? "R" : "-")}");
+        }
+    };
+    probe.Start();
+    await Task.Delay(TimeSpan.FromSeconds(probeSeconds));
+    probe.Stop();
+    return 0;
+
+    static string Cell(int? value) => value is null ? "  ?" : $"{value,3}";
+}
+
 // --- watch the Apple battery advertisement (manufacturer 0x004C) -----------------------------------
 if (action == "--ble-watch")
 {

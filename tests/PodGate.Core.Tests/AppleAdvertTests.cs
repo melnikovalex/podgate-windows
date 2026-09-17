@@ -74,12 +74,47 @@ public class AppleAdvertTests
     [Fact]
     public void ReadsChargingPerPod()
     {
-        // Charging nibble: bit 0 is the pod that reported first, bit 2 is the case.
+        // Charging nibble: bit 0 is the pod in the low nibble of the battery byte, bit 2 is the case.
         PodStatus? status = AppleAdvert.Parse(Advert(status: 0x20, caseAndCharge: 0x14));
 
-        Assert.False(status!.LeftCharging);
-        Assert.True(status.RightCharging);
+        Assert.True(status!.LeftCharging);
+        Assert.False(status.RightCharging);
         Assert.False(status.CaseCharging);
+    }
+
+    [Fact]
+    public void TheTwoPodsAgreeOnWhichOneIsCharging()
+    {
+        // Both pods advertise at the same time, one with the flip bit set and one without, and the
+        // charging bits move with the flip just like the battery nibbles do. This pair of payloads was
+        // captured with the left pod charging in the case and the right one out of it; reading either
+        // advertisement has to give the same answer, which is what makes the bit order certain.
+        PodStatus? asSeenFromOnePod = AppleAdvert.Parse(Advert(status: 0x71, pods: 0x75, caseAndCharge: 0x99));
+        PodStatus? asSeenFromTheOther = AppleAdvert.Parse(Advert(status: 0x11, pods: 0x57, caseAndCharge: 0xA9));
+
+        foreach (PodStatus? reading in new[] { asSeenFromOnePod, asSeenFromTheOther })
+        {
+            Assert.Equal(50, reading!.Left);
+            Assert.Equal(70, reading.Right);
+            Assert.Equal(90, reading.Case);
+            Assert.True(reading.LeftCharging);
+            Assert.False(reading.RightCharging);
+            Assert.False(reading.CaseCharging);
+        }
+    }
+
+    [Fact]
+    public void ForgetsTheCaseWhenNoPodIsInIt()
+    {
+        // The case only reports a level while it holds a pod; with both pods out the nibble is 0xF.
+        PodStatus? status = AppleAdvert.Parse(Advert(status: 0x03, pods: 0x67, caseAndCharge: 0x8F));
+
+        Assert.Null(status!.Case);
+        Assert.False(status.CaseCharging);
+        Assert.False(status.LeftCharging);
+        Assert.False(status.RightCharging);
+        Assert.Equal(60, status.Left);
+        Assert.Equal(70, status.Right);
     }
 
     [Fact]
@@ -113,6 +148,17 @@ public class AppleAdvertTests
     public void DescribesTheReadingForTheTray(byte pods, byte caseNibble, string expected)
     {
         Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x20, pods: pods, caseAndCharge: caseNibble))!.Describe());
+    }
+
+    [Theory]
+    // Real states, as the tray writes them: a bolt marks whatever is charging right now.
+    [InlineData(0x67, 0xB9, "L 60%⚡ · R 70%⚡ · Case 90%")]   // both pods in the case
+    [InlineData(0x67, 0xF9, "L 60%⚡ · R 70%⚡ · Case 90%⚡")] // ... and the case on a charger
+    [InlineData(0x57, 0xA9, "L 50%⚡ · R 70% · Case 90%")]         // left charging, right in hand
+    [InlineData(0x67, 0x8F, "L 60% · R 70%")]                                 // both out, no case reading
+    public void MarksWhatIsCharging(byte pods, byte caseAndCharge, string expected)
+    {
+        Assert.Equal(expected, AppleAdvert.Parse(Advert(status: 0x11, pods: pods, caseAndCharge: caseAndCharge))!.Describe());
     }
 
     [Fact]
