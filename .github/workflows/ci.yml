@@ -35,10 +35,12 @@ jobs:
       - name: build installer
         run: powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: installer
-          path: artifacts/setup/*.msi
+          path: |
+            artifacts/setup/*.msi
+            artifacts/setup/*.exe
           if-no-files-found: error
 
   release:
@@ -60,13 +62,20 @@ jobs:
           git merge-base --is-ancestor $env:GITHUB_SHA origin/main
           if ($LASTEXITCODE -ne 0) { throw 'releases are tagged on main' }
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: installer
           path: dist
 
+      # The release notes are the tag's own message. Generated notes would only list the single squashed
+      # commit that main receives per release, which says nothing about what changed.
       - name: publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create '${{ github.ref_name }}' (Get-ChildItem dist/*.msi).FullName --title 'PodGate ${{ github.ref_name }}' --generate-notes
+        run: |
+          $notes = git tag -l --format='%(contents)' '${{ github.ref_name }}'
+          if (-not $notes) { throw 'the tag has no message, so there are no release notes' }
+          $notes | Out-File -FilePath notes.md -Encoding utf8
+          $files = Get-ChildItem dist/* -Include *.msi, *.exe | ForEach-Object { $_.FullName }
+          gh release create '${{ github.ref_name }}' $files --title 'PodGate ${{ github.ref_name }}' --notes-file notes.md
