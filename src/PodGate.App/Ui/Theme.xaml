@@ -385,7 +385,7 @@
             <DockPanel>
               <Grid x:Name="PART_TitleBar" DockPanel.Dock="Top" Height="40" Background="Transparent">
                 <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
-                  <ui:AirPodGlyph Width="16" Height="16" Foreground="{StaticResource PodOn}"/>
+                  <ui:BrandMark Width="16" Height="16"/>
                   <TextBlock Text="{TemplateBinding Title}" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource Label2}"
                              VerticalAlignment="Center"/>
                 </StackPanel>

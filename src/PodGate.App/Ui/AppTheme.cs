@@ -20,6 +20,13 @@ public static class AppTheme
 
     public static bool IsLight => Registry.CurrentUser.OpenSubKey(PersonalizeKey)?.GetValue("AppsUseLightTheme") is int value && value == 1;
 
+    /// <summary>
+    /// The theme the app is actually showing, which is not always what Windows asks for: the snapshot tool
+    /// forces one. Artwork that exists in two versions has to follow this, or a light window ends up with a
+    /// picture of a dark taskbar in it.
+    /// </summary>
+    public static bool ShowingLight { get; private set; }
+
     /// <summary>The Windows accent colour, used for the primary button, checkmarks and the step bar.</summary>
     public static Color Accent
     {
@@ -48,6 +55,7 @@ public static class AppTheme
     public static void Apply(bool light, Color accent)
     {
         ResourceDictionary resources = System.Windows.Application.Current.Resources;
+        ShowingLight = light;
         Color onAccent = Luminance(accent) > 0.6 ? Color.FromRgb(0x1C, 0x1C, 0x1E) : Colors.White;
 
         // Accent first: it is the one colour that comes from the user, not from us.

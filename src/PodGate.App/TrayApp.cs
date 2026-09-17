@@ -37,7 +37,7 @@ public sealed class TrayApp : IDisposable
     {
         _hotkeys = new HotkeyManager(settings.EffectiveHotkeys(config));
 
-        _icon.Icon = TrayIcons.Draw(TrayIcons.Gray);
+        _icon.Icon = TrayIcons.Draw(TrayState.Blocked);
         _icon.Text = "PodGate";
         _icon.Visible = true;
         _icon.ContextMenuStrip = BuildMenu();
@@ -221,13 +221,13 @@ public sealed class TrayApp : IDisposable
     }
 
     private Task ConnectAsync() =>
-        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Full, $"{DeviceLabel()}: connecting...", TrayIcons.White, connects: true);
+        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Full, $"{DeviceLabel()}: connecting...", TrayState.On, connects: true);
 
     private Task ConnectMusicAsync() =>
-        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Music, $"{DeviceLabel()}: connecting music...", TrayIcons.Purple, connects: true);
+        RunAsync(flow => flow.ConnectAsync(Progress()), ConnectMode.Music, $"{DeviceLabel()}: connecting music...", TrayState.Music, connects: true);
 
     private Task ReleaseAsync() =>
-        RunAsync(flow => flow.ReleaseAsync(Progress()), PodGateConfig.Load().Mode, $"{DeviceLabel()}: disconnecting...", TrayIcons.Gray, connects: false);
+        RunAsync(flow => flow.ReleaseAsync(Progress()), PodGateConfig.Load().Mode, $"{DeviceLabel()}: disconnecting...", TrayState.Blocked, connects: false);
 
     /// <summary>
     /// One action at a time: overlapping connect and release runs can leave the AirPods in Hands-Free-only
@@ -258,7 +258,7 @@ public sealed class TrayApp : IDisposable
         }
     }
 
-    private async Task RunAsync(Func<ConnectFlow, Task<FlowResult>> action, ConnectMode mode, string title, Color color, bool connects)
+    private async Task RunAsync(Func<ConnectFlow, Task<FlowResult>> action, ConnectMode mode, string title, TrayState state, bool connects)
     {
         try
         {
@@ -268,7 +268,7 @@ public sealed class TrayApp : IDisposable
                 config.Mode = mode;
                 var flow = new ConnectFlow(config, AppLog.Write);
 
-                ShowHud(title, color);
+                ShowHud(title, TrayIcons.Colour(state));
                 FlowResult result = await action(flow);
                 if (connects && result.Ok) _connectedMode = mode;
                 AppLog.Write($"{result.Message} in {result.Elapsed.TotalSeconds:N1}s");
@@ -310,11 +310,11 @@ public sealed class TrayApp : IDisposable
     private void RefreshState()
     {
         string label;
-        Color pod = TrayIcons.Gray;
+        TrayState state = TrayState.Blocked;
         try
         {
             var quick = QuickState.Read(PodGateConfig.Load().Address);
-            if (quick.Connected) pod = _connectedMode == ConnectMode.Music ? TrayIcons.Purple : TrayIcons.White;
+            if (quick.Connected) state = _connectedMode == ConnectMode.Music ? TrayState.Music : TrayState.On;
             label = quick.Connected ? (_connectedMode == ConnectMode.Music ? "Connected (music)" : "Connected")
                                     : "Disconnected";
             _statusItem.Text = $"{quick.Name ?? "AirPods"} : {label}";
@@ -330,7 +330,7 @@ public sealed class TrayApp : IDisposable
         _lastState = label;
 
         Icon? old = _icon.Icon;
-        _icon.Icon = TrayIcons.Draw(pod);
+        _icon.Icon = TrayIcons.Draw(state);
         old?.Dispose();
         _icon.Text = $"PodGate - {_statusItem.Text}";
     }

@@ -132,8 +132,13 @@
       <Border x:Name="AlreadyRunningHint" Background="{DynamicResource Group}" CornerRadius="12" Padding="14,10"
               Margin="32,12,32,0" Visibility="Collapsed">
         <Grid>
-          <ui:AirPodGlyph Width="22" Height="22" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{StaticResource PodOn}"/>
-          <TextBlock Style="{StaticResource Caption}" Margin="36,0,0,0" VerticalAlignment="Center"
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <ui:TrayHint Height="34" VerticalAlignment="Center"/>
+          <TextBlock Grid.Column="1" Style="{StaticResource Caption}" Margin="14,0,0,0" VerticalAlignment="Center"
+                     TextWrapping="Wrap"
                      Text="PodGate was already running: this is its window. The icon sits in the tray next to the clock, behind the arrow if the icons are hidden."/>
         </Grid>
       </Border>

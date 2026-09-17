@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.IO;
 using Brushes = System.Windows.Media.Brushes;
 using Control = System.Windows.Controls.Control;
 using Point = System.Windows.Point;
@@ -47,6 +49,47 @@ public sealed class AirPodGlyph : FrameworkElement
         dc.DrawEllipse(Brushes.Black, null, new Point(16 * s, 16 * s), 16 * s, 16 * s);
         dc.DrawEllipse(Foreground, null, new Point(15 * s, 10.5 * s), 7 * s, 6.5 * s);
         dc.DrawRoundedRectangle(Foreground, null, new Rect(16 * s, 10 * s, 6 * s, 16 * s), 3 * s, 3 * s);
+    }
+}
+
+/// <summary>
+/// PodGate's own icon, for the places where the app is identifying itself rather than the AirPods: the
+/// title bars and the first page of setup. The AirPod glyph stays where a device is meant.
+/// </summary>
+public sealed class BrandMark : System.Windows.Controls.Image
+{
+    public BrandMark()
+    {
+        Stretch = Stretch.Uniform;
+        Source = TrayIcons.WindowIcon;
+    }
+}
+
+/// <summary>
+/// A picture of the Windows tray with PodGate's icon in it, for the "where did it go" hints. Two versions
+/// exist because a screenshot of a dark taskbar on a light window looks like a mistake; the app theme
+/// decides which one, at the moment the hint is built.
+/// </summary>
+public sealed class TrayHint : System.Windows.Controls.Image
+{
+    public TrayHint()
+    {
+        Stretch = Stretch.Uniform;
+        Source = Load(AppTheme.ShowingLight ? "tray-light.png" : "tray-dark.png");
+    }
+
+    private static BitmapSource Load(string name)
+    {
+        using Stream stream = typeof(TrayHint).Assembly.GetManifestResourceStream($"PodGate.App.Assets.{name}")
+            ?? throw new InvalidOperationException($"the hint image {name} is missing from the build");
+
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.StreamSource = stream;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
 }
 
