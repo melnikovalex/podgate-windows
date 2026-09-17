@@ -1,11 +1,16 @@
 name: ci
 
+# Tags only. Every other trigger built the same thing again: pushing a release moved main and the tag,
+# which is two events and two ten-minute Windows builds for one release. Work is built locally with
+# build.ps1 before it is tagged, so the pipeline exists to produce and publish the release, nothing else.
 on:
   push:
-    branches: [dev, main]
     tags: ['v*']
-  pull_request:
-    branches: [dev, main]
+
+# A re-pushed tag supersedes its own run rather than racing it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
