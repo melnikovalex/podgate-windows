@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Builds the installer: artifacts\setup\PodGate-<VERSION>.msi
+  Builds the installer: artifacts\setup\PodGate-<VERSION>.msi and PodGate-Setup-<VERSION>.exe
 
 .DESCRIPTION
   Publishes the service and the app self-contained into one folder (they share the runtime files, so the
@@ -10,6 +10,7 @@
       dotnet tool install --global wix --version 5.0.2
       wix extension add -g WixToolset.Util.wixext/5.0.2
       wix extension add -g WixToolset.UI.wixext/5.0.2
+      wix extension add -g WixToolset.BootstrapperApplications.wixext/5.0.2
 #>
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -62,4 +63,12 @@ $msi = Join-Path $setup "PodGate-$version.msi"
     -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -arch x64 -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'wix build failed' }
 
+# The .exe wrapper: same MSI inside, but an icon of our own instead of the Windows Installer disc.
+$bundle = Join-Path $setup "PodGate-Setup-$version.exe"
+& $wix build (Join-Path $root 'setup\Bundle.wxs') `
+    -d "Version=$version" -d "IconFile=$icon" -d "MsiFile=$msi" -d "LicenseFile=$(Join-Path $root 'setup\license.rtf')" `
+    -ext WixToolset.BootstrapperApplications.wixext -arch x64 -o $bundle
+if ($LASTEXITCODE -ne 0) { throw 'wix bundle build failed' }
+
 Write-Host "Built $msi"
+Write-Host "Built $bundle"
