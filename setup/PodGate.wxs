@@ -92,6 +92,13 @@
                        Type="string" Value="&quot;[INSTALLFOLDER]PodGate.exe&quot; --autostart" KeyPath="yes" />
       </Component>
 
+      <!-- Windows extracts the icon for the Installed-apps entry but does not always record where it
+           put it, which leaves the entry without a picture. Pointing at the installed exe is explicit. -->
+      <Component Id="ArpIcon" Directory="INSTALLFOLDER" Bitness="always64" Guid="2E6B4F31-84A7-4D2B-9C6E-0F1A2B3C4D5E">
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]"
+                       Name="DisplayIcon" Type="string" Value="[INSTALLFOLDER]PodGate.exe,0" KeyPath="yes" />
+      </Component>
+
       <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="7B4A2D15-3E64-4F2A-9E3C-0A5D6B7C8E91">
         <!-- Naming the icon explicitly also gives Windows a changed icon reference on an upgrade, which is
              what makes the Start menu drop its cached picture instead of showing the old one. -->
