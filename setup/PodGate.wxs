@@ -46,6 +46,9 @@
     <Property Id="ARPPRODUCTICON" Value="PodGate.ico" />
     <Property Id="ARPHELPLINK" Value="https://github.com/melnikovalex/podgate-windows" />
     <WixVariable Id="WixUILicenseRtf" Value="setup\license.rtf" />
+    <!-- WixUI's stock artwork is a dark red bitmap with a disc on it; setup\make-art.ps1 draws these. -->
+    <WixVariable Id="WixUIDialogBmp" Value="setup\dialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="setup\banner.bmp" />
     <ui:WixUI Id="WixUI_Minimal" />
 
     <StandardDirectory Id="ProgramFiles64Folder">

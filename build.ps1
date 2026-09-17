@@ -66,7 +66,7 @@ if ($LASTEXITCODE -ne 0) { throw 'wix build failed' }
 # The .exe wrapper: same MSI inside, but an icon of our own instead of the Windows Installer disc.
 $bundle = Join-Path $setup "PodGate-Setup-$version.exe"
 & $wix build (Join-Path $root 'setup\Bundle.wxs') `
-    -d "Version=$version" -d "IconFile=$icon" -d "MsiFile=$msi" -d "LicenseFile=$(Join-Path $root 'setup\license.rtf')" `
+    -d "Version=$version" -d "IconFile=$icon" -d "MsiFile=$msi" -d "LicenseFile=$(Join-Path $root 'setup\license.rtf')" -d "LogoFile=$(Join-Path $root 'setup\logo.png')" `
     -ext WixToolset.BootstrapperApplications.wixext -arch x64 -o $bundle
 if ($LASTEXITCODE -ne 0) { throw 'wix bundle build failed' }
 

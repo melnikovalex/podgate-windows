@@ -22,7 +22,7 @@
     <!-- The bundle is the only thing the user sees, so the MSI's entry is the one that stays in
          Installed apps: uninstalling there still runs the full restore. -->
     <BootstrapperApplication>
-      <bal:WixStandardBootstrapperApplication Theme="rtfLicense" LicenseFile="$(LicenseFile)"
+      <bal:WixStandardBootstrapperApplication Theme="rtfLicense" LicenseFile="$(LicenseFile)" LogoFile="$(LogoFile)"
                                               SuppressOptionsUI="yes" />
     </BootstrapperApplication>
 
