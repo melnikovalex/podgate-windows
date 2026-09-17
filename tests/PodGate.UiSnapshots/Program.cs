@@ -69,16 +69,11 @@ internal static class Program
             "Take them out of the case, keep them near this PC, and try again. Your phone can keep using them in the meantime.");
         Save(setup, output, "3b-test-failed");
 
-        setup.ShowPageForSnapshot(SetupWindow.Page.Shortcuts);
-        setup.SetupToggleRow.ShowSample("works");
-        setup.SetupMusicRow.ShowSample("saved");
-        Save(setup, output, "4-shortcuts");
-
         setup.SetTestPassedForSnapshot(true);
         setup.ShowPageForSnapshot(SetupWindow.Page.Done);
-        setup.DoneToggleRow.ShowSample("idle");
-        setup.DoneMusicRow.ShowSample("idle");
-        Save(setup, output, "5-done");
+        setup.DoneToggleRow.ShowSample("works");
+        setup.DoneMusicRow.ShowSample("saved");
+        Save(setup, output, "4-done");
         setup.Close();
 
         var change = new SetupWindow(hotkeys, _ => Task.FromResult(true), changeDevice: true) { SampleDevices = devices, SaveProgress = false };

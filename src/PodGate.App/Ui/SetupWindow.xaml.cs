@@ -23,7 +23,6 @@ public partial class SetupWindow : DarkWindow
         Welcome,
         Choose,
         Test,
-        Shortcuts,
         Done,
     }
 
@@ -49,10 +48,8 @@ public partial class SetupWindow : DarkWindow
         _hotkeys = hotkeys;
         _flow = changeDevice
             ? [Page.Choose, Page.Test, Page.Done]
-            : [Page.Welcome, Page.Choose, Page.Test, Page.Shortcuts, Page.Done];
+            : [Page.Welcome, Page.Choose, Page.Test, Page.Done];
 
-        SetupToggleRow.Attach(hotkeys);
-        SetupMusicRow.Attach(hotkeys);
         DoneToggleRow.Attach(hotkeys);
         DoneMusicRow.Attach(hotkeys);
 
@@ -81,8 +78,8 @@ public partial class SetupWindow : DarkWindow
         };
         Closing += (_, _) =>
         {
-            SetupToggleRow.Cancel();
-            SetupMusicRow.Cancel();
+            DoneToggleRow.Cancel();
+            DoneMusicRow.Cancel();
         };
 
         Go(0);
@@ -119,7 +116,7 @@ public partial class SetupWindow : DarkWindow
         Page page = Current;
 
         SkipButton.Visibility = Visibility.Collapsed;
-        foreach (FrameworkElement element in new FrameworkElement[] { WelcomePage, ChoosePage, NoAirPodsPage, ShortcutsPage, TestPage, DonePage })
+        foreach (FrameworkElement element in new FrameworkElement[] { WelcomePage, ChoosePage, NoAirPodsPage, TestPage, DonePage })
         {
             element.Visibility = Visibility.Collapsed;
         }
@@ -164,11 +161,6 @@ public partial class SetupWindow : DarkWindow
 
             case Page.Choose:
                 LoadDevices();
-                break;
-
-            case Page.Shortcuts:
-                ShortcutsPage.Visibility = Visibility.Visible;
-                SetNextText("Next");
                 break;
 
             case Page.Test:
@@ -567,7 +559,7 @@ public partial class SetupWindow : DarkWindow
     }
 
     private string CurrentBinding(HotkeyAction action, string fallback) =>
-        SetupToggleRow.Manager?.Get(action) ?? fallback;
+        DoneToggleRow.Manager?.Get(action) ?? fallback;
 }
 
 /// <summary>A paired device as the chooser shows it.</summary>
